@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Projeto 2 | Transformações Geométricas em Imagens</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="hero">
+      <div class="hero-copy">
+        <span class="eyebrow">Projeto da disciplina</span>
+        <h1>Transformações Geométricas em Imagens</h1>
+        <p>
+          Aplicação acadêmica em HTML, CSS e JavaScript puro para demonstrar escala,
+          translação, reflexão, cisalhamento e rotação em imagens binárias e em níveis
+          de cinza, com processamento manual de pixels.
+        </p>
+      </div>
+      <div class="hero-note">
+        <strong>Base conceitual</strong>
+        <span>Processamento Digital de Imagens, Ogê Marques Filho, Capítulo 2, seção 2.5 - Transformações geométricas.</span>
+      </div>
+    </header>
+
+    <main class="dashboard">
+      <aside class="left-panel">
+        <section class="panel-card">
+          <div class="section-title">
+            <h2>Entrada da Imagem</h2>
+            <p>Carregue uma imagem ou use os exemplos prontos para teste.</p>
+          </div>
+
+          <label class="file-picker">
+            <span>Selecionar imagem</span>
+            <input type="file" id="imageInput" accept=".pgm,.pbm,.png,.jpg,.jpeg,.bmp,.webp">
+          </label>
+
+          <div class="quick-actions">
+            <button class="secondary-button" id="loadGraySample">Exemplo em Cinza</button>
+            <button class="secondary-button" id="loadBinarySample">Exemplo Binário</button>
+          </div>
+
+          <div class="info-box">
+            <strong>Formatos aceitos</strong>
+            <p>
+              PGM/PBM e imagens comuns do navegador. Arquivos coloridos são convertidos
+              manualmente para tons de cinza.
+            </p>
+          </div>
+        </section>
+
+        <section class="panel-card">
+          <div class="section-title">
+            <h2>Transformações</h2>
+            <p>Cada operação possui parâmetros próprios e botão independente.</p>
+          </div>
+
+          <div class="transform-card">
+            <div class="transform-header">
+              <h3>Escala</h3>
+              <span>Matriz de redimensionamento</span>
+            </div>
+            <div class="field-grid two-columns">
+              <label>
+                <span>Escala X</span>
+                <input type="number" id="scaleX" value="1.2" step="0.1">
+              </label>
+              <label>
+                <span>Escala Y</span>
+                <input type="number" id="scaleY" value="1.2" step="0.1">
+              </label>
+            </div>
+            <button class="primary-button" data-transform="scale">Aplicar Escala</button>
+          </div>
+
+          <div class="transform-card">
+            <div class="transform-header">
+              <h3>Translação</h3>
+              <span>Deslocamento espacial da imagem</span>
+            </div>
+            <div class="field-grid two-columns">
+              <label>
+                <span>Deslocamento X</span>
+                <input type="number" id="translateX" value="60" step="1">
+              </label>
+              <label>
+                <span>Deslocamento Y</span>
+                <input type="number" id="translateY" value="40" step="1">
+              </label>
+            </div>
+            <button class="primary-button" data-transform="translate">Aplicar Translação</button>
+          </div>
+
+          <div class="transform-card">
+            <div class="transform-header">
+              <h3>Reflexão / Flip</h3>
+              <span>Espelhamento em torno dos eixos da imagem</span>
+            </div>
+            <div class="checkbox-group">
+              <label class="checkbox">
+                <input type="checkbox" id="reflectX">
+                <span>Refletir no eixo X</span>
+              </label>
+              <label class="checkbox">
+                <input type="checkbox" id="reflectY">
+                <span>Refletir no eixo Y</span>
+              </label>
+            </div>
+            <button class="primary-button" data-transform="reflect">Aplicar Reflexão</button>
+          </div>
+
+          <div class="transform-card">
+            <div class="transform-header">
+              <h3>Cisalhamento</h3>
+              <span>Distorção geométrica por inclinação</span>
+            </div>
+            <div class="field-grid two-columns">
+              <label>
+                <span>shX</span>
+                <input type="number" id="shearX" value="0.35" step="0.05">
+              </label>
+              <label>
+                <span>shY</span>
+                <input type="number" id="shearY" value="0" step="0.05">
+              </label>
+            </div>
+            <button class="primary-button" data-transform="shear">Aplicar Cisalhamento</button>
+          </div>
+
+          <div class="transform-card">
+            <div class="transform-header">
+              <h3>Rotação</h3>
+              <span>Giro em torno do centro da imagem</span>
+            </div>
+            <div class="field-grid">
+              <label>
+                <span>Ângulo em graus</span>
+                <input type="number" id="rotation" value="30" step="1">
+              </label>
+            </div>
+            <button class="primary-button" data-transform="rotate">Aplicar Rotação</button>
+          </div>
+        </section>
+
+        <section class="panel-card">
+          <div class="section-title">
+            <h2>Controles Gerais</h2>
+            <p>Organização para apresentação e comparação dos resultados.</p>
+          </div>
+          <div class="toggle-line">
+            <label class="checkbox">
+              <input type="checkbox" id="useResultAsBase">
+              <span>Aplicar a transformação sobre o resultado atual</span>
+            </label>
+          </div>
+          <div class="quick-actions stacked">
+            <button class="secondary-button" id="promoteResult">Usar resultado como nova imagem original</button>
+            <button class="ghost-button" id="resetResult">Restaurar imagem original</button>
+            <button class="ghost-button danger" id="clearCanvases">Limpar tudo</button>
+          </div>
+        </section>
+      </aside>
+
+      <section class="viewer-panel">
+        <section class="canvas-card">
+          <div class="canvas-header">
+            <div>
+              <h2>Imagem Original</h2>
+              <p>Visualização da imagem de entrada no canvas.</p>
+            </div>
+            <span class="badge" id="originalMeta">Nenhuma imagem carregada</span>
+          </div>
+          <div class="canvas-stage">
+            <canvas id="originalCanvas" width="360" height="360"></canvas>
+          </div>
+        </section>
+
+        <section class="canvas-card">
+          <div class="canvas-header">
+            <div>
+              <h2>Imagem Transformada</h2>
+              <p>Resultado calculado por remapeamento geométrico manual.</p>
+            </div>
+            <span class="badge" id="resultMeta">Aguardando processamento</span>
+          </div>
+          <div class="canvas-stage">
+            <canvas id="resultCanvas" width="360" height="360"></canvas>
+          </div>
+        </section>
+
+        <section class="report-card">
+          <div class="section-title">
+            <h2>Resumo Técnico</h2>
+            <p>Área útil para apresentação do funcionamento do algoritmo.</p>
+          </div>
+          <div class="report-grid">
+            <div class="report-item">
+              <strong>Modo detectado</strong>
+              <span id="imageMode">Nenhum</span>
+            </div>
+            <div class="report-item">
+              <strong>Transformação atual</strong>
+              <span id="currentTransform">Nenhuma</span>
+            </div>
+            <div class="report-item wide">
+              <strong>Critério de amostragem</strong>
+              <span>
+                A reconstrução espacial usa interpolação por vizinho mais próximo, adequada
+                para uma implementação didática pixel a pixel em JavaScript puro.
+              </span>
+            </div>
+            <div class="report-item wide">
+              <strong>Justificativa do cisalhamento</strong>
+              <span>
+                O cisalhamento foi incluído como caso clássico de transformação afim 2D,
+                mesmo quando não aparece destacado nominalmente no trecho principal da referência.
+              </span>
+            </div>
+            <div class="report-item wide">
+              <strong>Observação</strong>
+              <span id="statusText">
+                O canvas é usado apenas como superfície de desenho. Os novos pixels são
+                calculados manualmente em JavaScript com interpolação por vizinho mais próximo, sem bibliotecas de processamento.
+              </span>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
