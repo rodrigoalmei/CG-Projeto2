@@ -1,0 +1,176 @@
+:root {
+    --bg: #f4f7fb;
+    --card: #ffffff;
+    --line: #d4deea;
+    --text: #10253d;
+    --muted: #60748e;
+    --accent: #0a7cc2;
+    --accent-strong: #075c8f;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: linear-gradient(180deg, #f7fbff 0%, #f4f7fb 45%, #eef2f7 100%);
+    font-family: "Segoe UI", "Trebuchet MS", Arial, sans-serif;
+    color: var(--text);
+}
+
+.page {
+    width: min(1240px, 94vw);
+    margin: 22px auto 38px;
+    display: grid;
+    gap: 16px;
+}
+
+.hero,
+.card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 16px;
+}
+
+.eyebrow {
+    margin: 0;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent-strong);
+    font-weight: 700;
+}
+
+h1 {
+    margin: 8px 0 10px;
+    font-size: clamp(1.4rem, 2.7vw, 2rem);
+}
+
+.hero p,
+.muted {
+    margin: 8px 0;
+    color: var(--muted);
+    line-height: 1.55;
+}
+
+.controls {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    align-items: start;
+}
+
+.control-group {
+    display: grid;
+    gap: 6px;
+}
+
+.control-group label {
+    font-weight: 700;
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+select,
+input,
+button {
+    font: inherit;
+}
+
+select,
+input[type="number"] {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 9px 10px;
+}
+
+.primary-button,
+.secondary-button,
+.ghost-button {
+    border: none;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.primary-button {
+    background: linear-gradient(180deg, var(--accent) 0%, var(--accent-strong) 100%);
+    color: #fff;
+}
+
+.secondary-button {
+    background: #e8f3fd;
+    color: var(--accent-strong);
+    border: 1px solid #c8dcf1;
+}
+
+.ghost-button {
+    background: #fff;
+    color: var(--text);
+    border: 1px solid var(--line);
+}
+
+.kernel h2 {
+    margin: 0 0 6px;
+    font-size: 1.05rem;
+}
+
+.kernel-grid {
+    margin-top: 10px;
+    width: 100%;
+    max-width: 190px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.kernel-grid input {
+    text-align: center;
+    font-weight: 700;
+}
+
+.viewers {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.card h2 {
+    margin: 0 0 10px;
+    font-size: 1.05rem;
+}
+
+canvas {
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #fff;
+    image-rendering: pixelated;
+}
+
+.status {
+    margin: 0;
+    font-weight: 600;
+}
+
+.button-row {
+    margin-top: 12px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+@media (max-width: 980px) {
+    .controls {
+        grid-template-columns: 1fr;
+    }
+
+    .viewers {
+        grid-template-columns: 1fr;
+    }
+}

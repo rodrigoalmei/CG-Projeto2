@@ -223,7 +223,7 @@ input {
   background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
 }
 
-.transform-card + .transform-card {
+.transform-card+.transform-card {
   margin-top: 14px;
 }
 

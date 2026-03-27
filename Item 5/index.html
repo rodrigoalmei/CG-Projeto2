@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Item 5 | Morfologia Binaria e em Cinza</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <main class="page">
+        <header class="hero">
+            <p class="eyebrow">Computacao Grafica - Projeto 2</p>
+            <h1>Item 5 - Operadores Morfologicos</h1>
+            <p>
+                Implementacao dos operadores morfologicos para imagens binarias e em niveis de cinza,
+                baseada na estrutura do projeto-processamento-imagens.
+            </p>
+        </header>
+
+        <section class="controls card">
+            <div class="control-group">
+                <label for="img-selector">Imagem de entrada</label>
+                <select id="img-selector">
+                    <optgroup label="Imagens Binarias">
+                        <option selected value="0">Digital</option>
+                        <option value="2">Texto</option>
+                        <option value="3">Mapa</option>
+                    </optgroup>
+                    <optgroup label="Imagens Em Niveis De Cinza">
+                        <option value="4">Lena</option>
+                        <option value="5">Airplane</option>
+                        <option value="9">Tomografia</option>
+                    </optgroup>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="input-filter">Transformacao</label>
+                <select id="input-filter">
+                    <option selected value="0">Original</option>
+                    <optgroup label="Operadores Binarios">
+                        <option value="1">Complemento</option>
+                        <option value="2">Erosao</option>
+                        <option value="3">Dilatacao</option>
+                        <option value="4">Abertura</option>
+                        <option value="5">Fechamento</option>
+                        <option value="6">Contorno Externo</option>
+                        <option value="7">Contorno Interno</option>
+                        <option value="8">Gradiente</option>
+                    </optgroup>
+                    <optgroup label="Operadores Em Niveis De Cinza">
+                        <option value="10">Erosao</option>
+                        <option value="11">Dilatacao</option>
+                        <option value="12">Abertura</option>
+                        <option value="13">Fechamento</option>
+                        <option value="14">Gradiente</option>
+                        <option value="15">Top-Hat</option>
+                        <option value="16">Bottom-Hat</option>
+                    </optgroup>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Elemento estruturante 3x3</label>
+                <form id="input-matrix" class="kernel-grid" role="form">
+                    <input type="number" name="array[]" value="0" min="0" max="1" step="1" class="matrix-input">
+                    <input type="number" name="array[]" value="1" min="0" max="1" step="1" class="matrix-input">
+                    <input type="number" name="array[]" value="0" min="0" max="1" step="1" class="matrix-input">
+                    <input type="number" name="array[]" value="1" min="0" max="1" step="1" class="matrix-input">
+                    <input type="number" name="array[]" value="1" min="0" max="1" step="1" class="matrix-input">
+                    <input type="number" name="array[]" value="1" min="0" max="1" step="1" class="matrix-input">
+                    <input type="number" name="array[]" value="0" min="0" max="1" step="1" class="matrix-input">
+                    <input type="number" name="array[]" value="1" min="0" max="1" step="1" class="matrix-input">
+                    <input type="number" name="array[]" value="0" min="0" max="1" step="1" class="matrix-input">
+                </form>
+            </div>
+        </section>
+
+        <section class="viewers">
+            <article class="card">
+                <h2>Imagem original</h2>
+                <canvas id="original-img" width="256" height="256"></canvas>
+            </article>
+
+            <article class="card">
+                <h2>Imagem processada</h2>
+                <canvas id="processed-img" width="256" height="256"></canvas>
+                <div class="button-row">
+                    <button id="apply-again-btn" class="secondary-button" type="button">Reusar</button>
+                    <button id="download-btn" class="ghost-button" type="button">Baixar</button>
+                </div>
+            </article>
+        </section>
+
+        <p id="status" class="status">Carregando imagens de exemplo...</p>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Item 4 | Equalizacao de Histograma</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <main class="page">
+        <header class="hero">
+            <p class="eyebrow">Computacao Grafica - Projeto 2</p>
+            <h1>Item 4 - Equalizacao de Histograma</h1>
+            <p>
+                A pagina apresenta a imagem original e equalizada, com os respectivos histogramas,
+                seguindo a estrutura do modulo de histograma do projeto base.
+            </p>
+            <div class="toolbar">
+                <label for="img-selector">Imagem</label>
+                <select id="img-selector">
+                    <option selected value="0">Lena</option>
+                    <option value="2">Airplane</option>
+                    <option value="3">Pedro Crianca</option>
+                    <option value="4">Nathan Crianca</option>
+                    <option value="5">Pedro Adulto</option>
+                    <option value="6">Nathan Adulto</option>
+                </select>
+                <button id="equalize-btn" class="primary-button">Equalizar</button>
+                <button id="show-original-hist" class="ghost-button" type="button">Mostrar Original</button>
+                <button id="show-processed-hist" class="ghost-button" type="button">Mostrar Equalizado</button>
+                <button id="download-btn" class="ghost-button" type="button">Baixar</button>
+            </div>
+            <p id="status" class="status">Carregando imagem...</p>
+        </header>
+
+        <section class="grid">
+            <article class="card">
+                <h2>Imagem Original</h2>
+                <canvas id="original-img" width="256" height="256"></canvas>
+            </article>
+
+            <article class="card">
+                <h2>Imagem Equalizada</h2>
+                <canvas id="processed-img" width="256" height="256"></canvas>
+            </article>
+
+            <article class="card">
+                <h2>Histograma Original</h2>
+                <canvas id="original-hist" width="420" height="220"></canvas>
+            </article>
+
+            <article class="card">
+                <h2>Histograma Equalizado</h2>
+                <canvas id="processed-hist" width="420" height="220"></canvas>
+            </article>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
