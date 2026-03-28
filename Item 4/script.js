@@ -116,7 +116,7 @@ function getScaleArr(acc) {
     const scale = [];
     scale[0] = 0;
     for (let i = 1; i < 256; i += 1) {
-        scale[i] = Math.ceil(acc[i] * 255);
+        scale[i] = Math.round(acc[i] * 255);
     }
     return scale;
 }
