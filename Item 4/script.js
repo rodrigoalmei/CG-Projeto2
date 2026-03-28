@@ -7,10 +7,19 @@ const showOriginalHistBtn = document.getElementById("show-original-hist");
 const showProcessedHistBtn = document.getElementById("show-processed-hist");
 const downloadBtn = document.getElementById("download-btn");
 const imgSelector = document.getElementById("img-selector");
+const uploadInput = document.getElementById("upload-input");
 const statusText = document.getElementById("status");
+const originalLoupeWrap = document.getElementById("original-loupe");
+const processedLoupeWrap = document.getElementById("processed-loupe");
+const originalCenterText = document.getElementById("original-center");
+const processedCenterText = document.getElementById("processed-center");
 
 let originalImage = null;
 let equalizedImage = null;
+let originalHover = null;
+let processedHover = null;
+let originalCenter = { x: 0, y: 0 };
+let processedCenter = { x: 0, y: 0 };
 
 const imagesPath = {
     0: "assets/lena.pgm",
@@ -20,6 +29,24 @@ const imagesPath = {
     5: "assets/pedroadult.pgm",
     6: "assets/nathanadult.pgm"
 };
+
+function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+}
+
+function samePoint(a, b) {
+    if (!a && !b) return true;
+    if (!a || !b) return false;
+    return a.x === b.x && a.y === b.y;
+}
+
+function getCenterByImage(img) {
+    if (!img) return { x: 0, y: 0 };
+    return {
+        x: Math.floor(img.width / 2),
+        y: Math.floor(img.height / 2)
+    };
+}
 
 function parsePortableImage(text) {
     const withoutComments = text
@@ -84,11 +111,225 @@ function clearCanvas(canvas) {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
+function drawFocusMarker(canvas, point, color) {
+    if (!point) return;
+    const ctx = canvas.getContext("2d");
+
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(point.x - 0.5, point.y - 0.5, 1, 1);
+    ctx.fillStyle = color;
+    ctx.fillRect(point.x, point.y, 1, 1);
+    ctx.restore();
+}
+
+function redrawCanvasesWithMarkers() {
+    if (!originalImage) return;
+
+    drawGrayImage(originalCanvas, originalImage);
+    drawFocusMarker(originalCanvas, originalCenter, "#2d7ff9");
+    drawFocusMarker(originalCanvas, originalHover, "#ff3b30");
+
+    if (equalizedImage) {
+        drawGrayImage(equalizedCanvas, equalizedImage);
+    } else {
+        clearCanvas(equalizedCanvas);
+    }
+    drawFocusMarker(equalizedCanvas, processedCenter, "#2d7ff9");
+    drawFocusMarker(equalizedCanvas, processedHover, "#ff3b30");
+}
+
+function getPixelFromImage(img, x, y, fallbackZero) {
+    if (!img) {
+        return fallbackZero ? 0 : "-";
+    }
+    if (y < 0 || y >= img.height || x < 0 || x >= img.width) {
+        return "-";
+    }
+    return img.data[y][x];
+}
+
+function renderLoupe({ wrap, label, img, center, hover, width, height, fallbackZero = false }) {
+    label.textContent = `Centro: [${center.x}, ${center.y}]`;
+
+    const effectiveWidth = Math.max(0, width || 0);
+    const effectiveHeight = Math.max(0, height || 0);
+    if (!effectiveWidth || !effectiveHeight) {
+        wrap.innerHTML = "";
+        return;
+    }
+
+    const radius = 7;
+    const startX = center.x - radius;
+    const startY = center.y - radius;
+
+    let html = '<table class="loupe-table"><thead><tr>';
+    html += '<th class="axis">X&rarr;<br>Y&darr;</th>';
+    for (let j = 0; j < 15; j += 1) {
+        const x = startX + j;
+        const valid = x >= 0 && x < effectiveWidth;
+        html += `<th>${valid ? x : ""}</th>`;
+    }
+    html += "</tr></thead><tbody>";
+
+    for (let i = 0; i < 15; i += 1) {
+        const y = startY + i;
+        const validY = y >= 0 && y < effectiveHeight;
+        html += "<tr>";
+        html += `<td class="axis">${validY ? y : ""}</td>`;
+
+        for (let j = 0; j < 15; j += 1) {
+            const x = startX + j;
+            const out = !validY || x < 0 || x >= effectiveWidth;
+            const value = out ? "-" : getPixelFromImage(img, x, y, fallbackZero);
+
+            const isHover = hover && hover.x === x && hover.y === y;
+            const isCenter = x === center.x && y === center.y;
+
+            let klass = "";
+            if (out) {
+                klass = "out";
+            } else if (isHover) {
+                klass = "hover";
+            } else if (isCenter) {
+                klass = "center";
+            }
+
+            html += `<td class="${klass}" data-x="${x}" data-y="${y}">${value}</td>`;
+        }
+        html += "</tr>";
+    }
+
+    html += "</tbody></table>";
+    wrap.innerHTML = html;
+}
+
+function renderLoupes() {
+    if (!originalImage) {
+        originalLoupeWrap.innerHTML = "";
+        processedLoupeWrap.innerHTML = "";
+        originalCenterText.textContent = "Centro: [0, 0]";
+        processedCenterText.textContent = "Centro: [0, 0]";
+        return;
+    }
+
+    originalCenter.x = clamp(originalCenter.x, 0, originalImage.width - 1);
+    originalCenter.y = clamp(originalCenter.y, 0, originalImage.height - 1);
+
+    renderLoupe({
+        wrap: originalLoupeWrap,
+        label: originalCenterText,
+        img: originalImage,
+        center: originalCenter,
+        hover: originalHover,
+        width: originalImage.width,
+        height: originalImage.height,
+        fallbackZero: false
+    });
+
+    const processedWidth = equalizedImage ? equalizedImage.width : originalImage.width;
+    const processedHeight = equalizedImage ? equalizedImage.height : originalImage.height;
+    processedCenter.x = clamp(processedCenter.x, 0, processedWidth - 1);
+    processedCenter.y = clamp(processedCenter.y, 0, processedHeight - 1);
+
+    renderLoupe({
+        wrap: processedLoupeWrap,
+        label: processedCenterText,
+        img: equalizedImage,
+        center: processedCenter,
+        hover: processedHover,
+        width: processedWidth,
+        height: processedHeight,
+        fallbackZero: !equalizedImage
+    });
+}
+
+function updateHoverFromMouse(event, canvas, dims, setHover) {
+    if (!dims || !dims.width || !dims.height) {
+        setHover(null);
+        return;
+    }
+
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = dims.width / rect.width;
+    const scaleY = dims.height / rect.height;
+    const x = Math.floor((event.clientX - rect.left) * scaleX);
+    const y = Math.floor((event.clientY - rect.top) * scaleY);
+
+    if (x >= 0 && x < dims.width && y >= 0 && y < dims.height) {
+        setHover({ x, y });
+    } else {
+        setHover(null);
+    }
+}
+
+function setupLoupeTableInteraction({ wrap, getDimensions, getHover, setHover, getCenter, setCenter }) {
+    wrap.addEventListener("mousemove", (event) => {
+        const cell = event.target.closest("td[data-x][data-y]");
+        if (!cell || !wrap.contains(cell)) {
+            return;
+        }
+
+        const dims = getDimensions();
+        if (!dims || !dims.width || !dims.height) {
+            return;
+        }
+
+        const x = Number(cell.dataset.x);
+        const y = Number(cell.dataset.y);
+        if (x < 0 || x >= dims.width || y < 0 || y >= dims.height) {
+            return;
+        }
+
+        const next = { x, y };
+        if (!samePoint(getHover(), next)) {
+            setHover(next);
+            redrawCanvasesWithMarkers();
+            renderLoupes();
+        }
+    });
+
+    wrap.addEventListener("mouseleave", () => {
+        if (getHover()) {
+            setHover(null);
+            redrawCanvasesWithMarkers();
+            renderLoupes();
+        }
+    });
+
+    wrap.addEventListener("click", (event) => {
+        const cell = event.target.closest("td[data-x][data-y]");
+        if (!cell || !wrap.contains(cell)) {
+            return;
+        }
+
+        const dims = getDimensions();
+        if (!dims || !dims.width || !dims.height) {
+            return;
+        }
+
+        const x = Number(cell.dataset.x);
+        const y = Number(cell.dataset.y);
+        if (x < 0 || x >= dims.width || y < 0 || y >= dims.height) {
+            return;
+        }
+
+        const next = { x, y };
+        if (!samePoint(getCenter(), next)) {
+            setCenter(next);
+            redrawCanvasesWithMarkers();
+            renderLoupes();
+        }
+    });
+}
+
 function buildHistogram(img) {
     const hist = new Array(256).fill(0);
     for (let y = 0; y < img.height; y += 1) {
         for (let x = 0; x < img.width; x += 1) {
-            hist[img.data[y][x]] += 1;
+            const value = Math.max(0, Math.min(255, Math.round(img.data[y][x])));
+            hist[value] += 1;
         }
     }
     return hist;
@@ -113,10 +354,9 @@ function getAccumulatedProba(histProb) {
 }
 
 function getScaleArr(acc) {
-    const scale = [];
-    scale[0] = 0;
-    for (let i = 1; i < 256; i += 1) {
-        scale[i] = Math.round(acc[i] * 255);
+    const scale = new Array(256).fill(0);
+    for (let i = 0; i < 256; i += 1) {
+        scale[i] = Math.max(0, Math.min(255, Math.round(acc[i] * 255)));
     }
     return scale;
 }
@@ -149,76 +389,33 @@ function drawHistogram(canvas, histogram, color) {
     const height = canvas.height;
 
     ctx.clearRect(0, 0, width, height);
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, width, height);
+    const maxVal = Math.max(...histogram);
+    if (maxVal === 0) return;
 
-    const range = 256;
-    const vPadding = 20;
-    const paddingLeft = Math.floor(width * 0.2);
-    const graphWidth = range;
-    const graphHeight = height - 2 * vPadding;
-    const yBase = height - vPadding;
-
-    const min = Math.min(...histogram);
-    const max = Math.max(...histogram, 1);
-
-    // Eixos e rotulos no mesmo estilo do modulo base.
-    ctx.save();
-    ctx.translate(paddingLeft, vPadding);
-
-    ctx.strokeStyle = "#000";
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(-2, yBase - vPadding + 2);
-    ctx.lineTo(graphWidth, yBase - vPadding + 2);
-    ctx.moveTo(-2, yBase - vPadding + 2);
-    ctx.lineTo(-2, vPadding);
-    ctx.stroke();
-
-    ctx.fillStyle = "#000";
-    ctx.font = "10px Helvetica";
-    ctx.fillText("0", 2, yBase - vPadding + 14);
-    ctx.fillText("255", graphWidth + 2, yBase - vPadding + 14);
-    ctx.fillText("< Nivel de cinza >", graphWidth / 2 - 35, yBase - vPadding + 14);
-    ctx.fillText(String(min), -24, yBase - vPadding);
-    ctx.fillText(String(max), -24, vPadding + 2);
-    ctx.fillText("1 - FDA", graphWidth + 2, vPadding + 2);
-
-    ctx.save();
-    ctx.rotate(-Math.PI / 2);
-    ctx.fillText("< Intensidade >", -graphHeight / 2 - 14, 18);
-    ctx.restore();
-
-    const barWidth = graphWidth / range;
+    const barWidth = width / 256;
     ctx.fillStyle = color;
 
-    for (let i = 0; i < range; i += 1) {
-        const barHeight = ((histogram[i] - min) / Math.max(1, max - min)) * graphHeight;
-        const x = i * barWidth;
-        const y = yBase - vPadding - barHeight;
-        if (barHeight > 0) {
-            ctx.fillRect(x, y, Math.max(1, barWidth), barHeight);
-        }
+    for (let i = 0; i < 256; i += 1) {
+        const barHeight = (histogram[i] / maxVal) * (height * 0.9);
+        ctx.fillRect(i * barWidth, height - barHeight, barWidth, barHeight);
     }
 
-    // Curva CDF sobreposta, como no modulo base de histograma.
-    const cumulative = [];
+    const cumulative = new Array(256).fill(0);
     let running = 0;
     for (let i = 0; i < 256; i += 1) {
         running += histogram[i];
         cumulative[i] = running;
     }
 
-    const minCdf = Math.min(...cumulative);
-    const maxCdf = Math.max(...cumulative) || 1;
-
-    ctx.strokeStyle = "#000";
+    const maxCdf = cumulative[255] || 1;
+    ctx.strokeStyle = "#0b2239";
     ctx.lineWidth = 2;
     ctx.beginPath();
-    for (let i = 0; i < range; i += 1) {
-        const normalized = (cumulative[i] - minCdf) / Math.max(1, maxCdf - minCdf);
-        const y = yBase - vPadding - normalized * graphHeight;
-        const x = i * barWidth;
+
+    for (let i = 0; i < 256; i += 1) {
+        const x = i * barWidth + barWidth / 2;
+        const normalized = cumulative[i] / maxCdf;
+        const y = height - normalized * (height * 0.9);
 
         if (i === 0) {
             ctx.moveTo(x, y);
@@ -226,8 +423,8 @@ function drawHistogram(canvas, histogram, color) {
             ctx.lineTo(x, y);
         }
     }
+
     ctx.stroke();
-    ctx.restore();
 }
 
 function imageToText(img) {
@@ -255,13 +452,26 @@ function updateView() {
         return;
     }
 
-    drawGrayImage(originalCanvas, originalImage);
+    redrawCanvasesWithMarkers();
+    renderLoupes();
+}
 
-    if (equalizedImage) {
-        drawGrayImage(equalizedCanvas, equalizedImage);
-    } else {
-        clearCanvas(equalizedCanvas);
-    }
+function resetCenters() {
+    originalCenter = getCenterByImage(originalImage);
+    processedCenter = equalizedImage ? getCenterByImage(equalizedImage) : { ...originalCenter };
+    originalHover = null;
+    processedHover = null;
+}
+
+async function loadFromFile(file) {
+    const text = await file.text();
+    originalImage = parsePortableImage(text);
+    equalizedImage = null;
+    resetCenters();
+    updateView();
+    clearCanvas(originalHistCanvas);
+    clearCanvas(equalizedHistCanvas);
+    statusText.textContent = `Imagem carregada via upload: ${file.name}. Clique em Equalizar para gerar a processada.`;
 }
 
 async function loadLena() {
@@ -271,8 +481,8 @@ async function loadLena() {
     const text = await response.text();
     originalImage = parsePortableImage(text);
 
-    // No fluxo base, a imagem processada nasce apenas apos clicar em Equalizar.
     equalizedImage = null;
+    resetCenters();
     updateView();
 
     clearCanvas(originalHistCanvas);
@@ -281,8 +491,18 @@ async function loadLena() {
 }
 
 imgSelector.addEventListener("change", () => {
+    uploadInput.value = "";
     loadLena().catch((error) => {
         statusText.textContent = `Erro ao carregar imagem: ${error.message}`;
+    });
+});
+
+uploadInput.addEventListener("change", () => {
+    const file = uploadInput.files && uploadInput.files[0];
+    if (!file) return;
+
+    loadFromFile(file).catch((error) => {
+        statusText.textContent = `Erro ao carregar upload: ${error.message}`;
     });
 });
 
@@ -291,6 +511,8 @@ equalizeBtn.addEventListener("click", () => {
         return;
     }
     equalizedImage = equalize(originalImage);
+    processedCenter = getCenterByImage(equalizedImage);
+    processedHover = null;
     updateView();
     statusText.textContent = "Equalizacao recalculada com sucesso.";
 });
@@ -311,6 +533,77 @@ downloadBtn.addEventListener("click", () => {
         return;
     }
     downloadImage(equalizedImage);
+});
+
+originalCanvas.addEventListener("mousemove", (event) => {
+    updateHoverFromMouse(event, originalCanvas, originalImage, (nextHover) => {
+        originalHover = nextHover;
+    });
+    redrawCanvasesWithMarkers();
+    renderLoupes();
+});
+
+originalCanvas.addEventListener("mouseleave", () => {
+    originalHover = null;
+    redrawCanvasesWithMarkers();
+    renderLoupes();
+});
+
+originalCanvas.addEventListener("click", () => {
+    if (originalHover) {
+        originalCenter = { ...originalHover };
+        redrawCanvasesWithMarkers();
+        renderLoupes();
+    }
+});
+
+equalizedCanvas.addEventListener("mousemove", (event) => {
+    const dims = equalizedImage || originalImage;
+    updateHoverFromMouse(event, equalizedCanvas, dims, (nextHover) => {
+        processedHover = nextHover;
+    });
+    redrawCanvasesWithMarkers();
+    renderLoupes();
+});
+
+equalizedCanvas.addEventListener("mouseleave", () => {
+    processedHover = null;
+    redrawCanvasesWithMarkers();
+    renderLoupes();
+});
+
+equalizedCanvas.addEventListener("click", () => {
+    if (processedHover) {
+        processedCenter = { ...processedHover };
+        redrawCanvasesWithMarkers();
+        renderLoupes();
+    }
+});
+
+setupLoupeTableInteraction({
+    wrap: originalLoupeWrap,
+    getDimensions: () => originalImage,
+    getHover: () => originalHover,
+    setHover: (value) => {
+        originalHover = value;
+    },
+    getCenter: () => originalCenter,
+    setCenter: (value) => {
+        originalCenter = value;
+    }
+});
+
+setupLoupeTableInteraction({
+    wrap: processedLoupeWrap,
+    getDimensions: () => equalizedImage || originalImage,
+    getHover: () => processedHover,
+    setHover: (value) => {
+        processedHover = value;
+    },
+    getCenter: () => processedCenter,
+    setCenter: (value) => {
+        processedCenter = value;
+    }
 });
 
 loadLena().catch((error) => {

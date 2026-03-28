@@ -23,6 +23,8 @@
                     <option selected value="0">Lena</option>
                     <option value="2">Airplane</option>
                 </select>
+                <label for="upload-input">Upload PGM</label>
+                <input id="upload-input" type="file" accept=".pgm,text/plain">
                 <button id="equalize-btn" class="primary-button">Equalizar</button>
                 <button id="show-original-hist" class="ghost-button" type="button">Mostrar Original</button>
                 <button id="show-processed-hist" class="ghost-button" type="button">Mostrar Equalizado</button>
@@ -35,11 +37,25 @@
             <article class="card">
                 <h2>Imagem Original</h2>
                 <canvas id="original-img" width="256" height="256"></canvas>
+                <div class="loupe">
+                    <div class="loupe-meta">
+                        <span>Lupa: Eixo X/Y</span>
+                        <span id="original-center" class="center-label">Centro: [0, 0]</span>
+                    </div>
+                    <div id="original-loupe" class="loupe-table-wrap"></div>
+                </div>
             </article>
 
             <article class="card">
                 <h2>Imagem Equalizada</h2>
                 <canvas id="processed-img" width="256" height="256"></canvas>
+                <div class="loupe">
+                    <div class="loupe-meta">
+                        <span>Lupa: Eixo X/Y</span>
+                        <span id="processed-center" class="center-label">Centro: [0, 0]</span>
+                    </div>
+                    <div id="processed-loupe" class="loupe-table-wrap"></div>
+                </div>
             </article>
 
             <article class="card">

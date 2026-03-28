@@ -80,11 +80,16 @@ button {
 }
 
 select,
-input[type="number"] {
+input[type="number"],
+input[type="file"] {
     width: 100%;
     border: 1px solid var(--line);
     border-radius: 10px;
     padding: 9px 10px;
+}
+
+input[type="file"] {
+    background: #fff;
 }
 
 .primary-button,
@@ -151,6 +156,74 @@ canvas {
     border-radius: 10px;
     background: #fff;
     image-rendering: pixelated;
+}
+
+.loupe {
+    margin-top: 12px;
+}
+
+.loupe-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-bottom: 8px;
+}
+
+.center-label {
+    color: var(--accent);
+    font-weight: 700;
+    font-family: Consolas, "Courier New", monospace;
+}
+
+.loupe-table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #071528;
+}
+
+.loupe-table {
+    border-collapse: collapse;
+    width: max-content;
+    min-width: 100%;
+    font-size: 0.72rem;
+    color: #dce8f6;
+    font-family: Consolas, "Courier New", monospace;
+}
+
+.loupe-table th,
+.loupe-table td {
+    border: 1px solid #15314f;
+    min-width: 26px;
+    text-align: center;
+    padding: 4px 3px;
+}
+
+.loupe-table thead th,
+.loupe-table .axis {
+    background: #10253d;
+    color: #8eaccb;
+    font-weight: 700;
+}
+
+.loupe-table .out {
+    background: #040d18;
+    color: #375270;
+}
+
+.loupe-table .hover {
+    background: #7a1f1f;
+    color: #fff;
+    font-weight: 700;
+}
+
+.loupe-table .center {
+    background: #0a3e78;
+    color: #fff;
+    font-weight: 700;
 }
 
 .status {

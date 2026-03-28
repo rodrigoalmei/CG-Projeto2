@@ -37,6 +37,11 @@
             </div>
 
             <div class="control-group">
+                <label for="upload-input">Upload de imagem (PBM/PGM)</label>
+                <input id="upload-input" type="file" accept=".pbm,.pgm,text/plain">
+            </div>
+
+            <div class="control-group">
                 <label for="input-filter">Transformacao</label>
                 <select id="input-filter">
                     <option selected value="0">Original</option>
@@ -83,11 +88,25 @@
             <article class="card">
                 <h2>Imagem original</h2>
                 <canvas id="original-img" width="256" height="256"></canvas>
+                <div class="loupe">
+                    <div class="loupe-meta">
+                        <span>Lupa: Eixo X/Y</span>
+                        <span id="original-center" class="center-label">Centro: [0, 0]</span>
+                    </div>
+                    <div id="original-loupe" class="loupe-table-wrap"></div>
+                </div>
             </article>
 
             <article class="card">
                 <h2>Imagem processada</h2>
                 <canvas id="processed-img" width="256" height="256"></canvas>
+                <div class="loupe">
+                    <div class="loupe-meta">
+                        <span>Lupa: Eixo X/Y</span>
+                        <span id="processed-center" class="center-label">Centro: [0, 0]</span>
+                    </div>
+                    <div id="processed-loupe" class="loupe-table-wrap"></div>
+                </div>
                 <div class="button-row">
                     <button id="apply-again-btn" class="secondary-button" type="button">Reusar</button>
                     <button id="download-btn" class="ghost-button" type="button">Baixar</button>
