@@ -12,7 +12,7 @@
   <div class="page-shell">
     <header class="hero">
       <div class="hero-copy">
-        <span class="eyebrow">Projeto da disciplina</span>
+        <span class="eyebrow">Projeto da disciplinda de Computação Gráfica</span>
         <h1>Transformações Geométricas em Imagens</h1>
         <p>
           Aplicação acadêmica em HTML, CSS e JavaScript puro para demonstrar escala,
@@ -21,9 +21,8 @@
         </p>
       </div>
       <div class="hero-note">
-        <strong>Base conceitual</strong>
-        <span>Processamento Digital de Imagens, Ogê Marques Filho, Capítulo 2, seção 2.5 - Transformações
-          geométricas.</span>
+        <strong>Alunos</strong>
+        <span>Arthur Marques, Rodrigo Almeida, Vitor Jesus e Vitor Raimundo</span>
       </div>
     </header>
 
@@ -32,7 +31,7 @@
         <section class="panel-card">
           <div class="section-title">
             <h2>Entrada da Imagem</h2>
-            <p>Carregue uma imagem ou use os exemplos prontos para teste.</p>
+            <p>Carregue uma imagem ou use as imagens reais disponibilizadas para o item 6.</p>
           </div>
 
           <label class="file-picker">
@@ -41,15 +40,17 @@
           </label>
 
           <div class="quick-actions">
-            <button class="secondary-button" id="loadGraySample">Exemplo em Cinza</button>
-            <button class="secondary-button" id="loadBinarySample">Exemplo Binário</button>
+            <button class="secondary-button" id="loadGraySample">Lena PGM</button>
+            <button class="secondary-button" id="loadBinarySample">Fingerprint PBM</button>
+            <button class="secondary-button" id="loadBinaryJpegSample">Binária JPEG</button>
           </div>
 
           <div class="info-box">
             <strong>Formatos aceitos</strong>
             <p>
               PGM/PBM e imagens comuns do navegador. Arquivos coloridos são convertidos
-              manualmente para tons de cinza.
+              manualmente para tons de cinza, e a imagem binária JPEG de apoio pode ser
+              binarizada por limiar.
             </p>
           </div>
         </section>
@@ -159,6 +160,7 @@
             </label>
           </div>
           <div class="quick-actions stacked">
+            <button class="ghost-button" id="resetControls">Restaurar valores padrão</button>
             <button class="secondary-button" id="promoteResult">Usar resultado como nova imagem original</button>
             <button class="ghost-button" id="resetResult">Restaurar imagem original</button>
             <button class="ghost-button danger" id="clearCanvases">Limpar tudo</button>

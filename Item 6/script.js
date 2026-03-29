@@ -12,26 +12,61 @@ const statusText = document.getElementById("statusText");
 const imageInput = document.getElementById("imageInput");
 const loadGraySampleButton = document.getElementById("loadGraySample");
 const loadBinarySampleButton = document.getElementById("loadBinarySample");
+const loadBinaryJpegSampleButton = document.getElementById("loadBinaryJpegSample");
 const useResultAsBaseCheckbox = document.getElementById("useResultAsBase");
+const resetControlsButton = document.getElementById("resetControls");
 const promoteResultButton = document.getElementById("promoteResult");
 const resetResultButton = document.getElementById("resetResult");
 const clearCanvasesButton = document.getElementById("clearCanvases");
 
+/*
+  Esta estrutura representa a imagem em memória.
+  A matriz de pixels é linear para facilitar cópia, transformação e renderização.
+*/
 let baseImage = null;
 let resultImage = null;
 let originalSnapshot = null;
 
-/*
-  A estrutura abaixo representa uma imagem em tons de cinza.
-  Cada posição do vetor pixels guarda um valor entre 0 e 255.
-*/
-function createImageObject(width, height, pixels, mode = "grayscale", label = "Imagem") {
+const sampleAssets = {
+  gray: {
+    label: "Lena PGM",
+    path: "./assets/lena.pgm",
+    kind: "portable"
+  },
+  binary: {
+    label: "Fingerprint PBM",
+    path: "./assets/fingerprint.pbm",
+    kind: "portable"
+  },
+  binaryJpeg: {
+    label: "Imagem binária JPEG",
+    path: "./assets/imagem-binaria.jpeg",
+    kind: "browser",
+    forceBinary: true
+  }
+};
+
+const defaultControlValues = {
+  scaleX: 1.2,
+  scaleY: 1.2,
+  translateX: 60,
+  translateY: 40,
+  shearX: 0.35,
+  shearY: 0,
+  rotation: 30,
+  reflectX: false,
+  reflectY: false,
+  useResultAsBase: false
+};
+
+function createImageObject(width, height, pixels, mode = "grayscale", label = "Imagem", type = "P2") {
   return {
     width,
     height,
     pixels,
     mode,
-    label
+    label,
+    type
   };
 }
 
@@ -41,13 +76,14 @@ function cloneImage(image) {
     image.height,
     new Uint8ClampedArray(image.pixels),
     image.mode,
-    image.label
+    image.label,
+    image.type
   );
 }
 
 /*
-  O canvas é usado apenas para desenhar.
-  O processamento geométrico ocorre sobre o vetor de pixels em memória.
+  O canvas é usado apenas como superfície de desenho.
+  O cálculo das transformações é feito manualmente em JavaScript.
 */
 function drawImageOnCanvas(image, canvas, context, metaElement, caption) {
   if (!image) {
@@ -81,13 +117,13 @@ function clearCanvas(canvas, context) {
   context.fillRect(0, 0, canvas.width, canvas.height);
 }
 
+function describeMode(mode) {
+  return mode === "binary" ? "Imagem binária" : "Imagem em níveis de cinza";
+}
+
 function updateSummary() {
   imageModeLabel.textContent = baseImage ? describeMode(baseImage.mode) : "Nenhum";
   currentTransformLabel.textContent = resultImage?.lastOperation || "Nenhuma";
-}
-
-function describeMode(mode) {
-  return mode === "binary" ? "Imagem binária" : "Imagem em níveis de cinza";
 }
 
 function setBaseImage(image, preserveOriginal = false) {
@@ -98,14 +134,14 @@ function setBaseImage(image, preserveOriginal = false) {
   }
 
   drawImageOnCanvas(baseImage, originalCanvas, originalCtx, originalMeta, "Imagem original");
-  imageModeLabel.textContent = describeMode(baseImage.mode);
+  updateSummary();
 }
 
 function setResultImage(image, operationName) {
   resultImage = cloneImage(image);
   resultImage.lastOperation = operationName;
   drawImageOnCanvas(resultImage, resultCanvas, resultCtx, resultMeta, "Imagem transformada");
-  currentTransformLabel.textContent = operationName;
+  updateSummary();
 }
 
 function detectMode(pixels) {
@@ -115,137 +151,38 @@ function detectMode(pixels) {
       return "grayscale";
     }
   }
+
   return "binary";
-}
-
-function getPixel(image, x, y) {
-  if (x < 0 || x >= image.width || y < 0 || y >= image.height) {
-    return 255;
-  }
-
-  return image.pixels[y * image.width + x];
 }
 
 function setPixel(pixels, width, x, y, value) {
   pixels[y * width + x] = value;
 }
 
-function createGraySample() {
-  const width = 240;
-  const height = 240;
-  const pixels = new Uint8ClampedArray(width * height);
+function getNearestPixel(image, x, y, background = 255) {
+  const px = Math.round(x);
+  const py = Math.round(y);
 
-  for (let y = 0; y < height; y += 1) {
-    for (let x = 0; x < width; x += 1) {
-      const gradient = Math.round((x / (width - 1)) * 180);
-      const circleX = x - width / 2;
-      const circleY = y - height / 2;
-      const radius = Math.sqrt(circleX * circleX + circleY * circleY);
-      const shapeBoost = radius < 58 ? 60 : 0;
-      const stripe = y > 120 && y < 150 ? 35 : 0;
-      const value = Math.max(0, Math.min(255, gradient + shapeBoost + stripe));
-      setPixel(pixels, width, x, y, value);
-    }
+  if (px < 0 || px >= image.width || py < 0 || py >= image.height) {
+    return background;
   }
 
-  return createImageObject(width, height, pixels, "grayscale", "Exemplo em cinza");
+  return image.pixels[py * image.width + px];
 }
 
-function createBinarySample() {
-  const width = 220;
-  const height = 220;
-  const pixels = new Uint8ClampedArray(width * height);
-  pixels.fill(255);
-
-  for (let y = 40; y <= 180; y += 1) {
-    for (let x = 40; x <= 180; x += 1) {
-      if (x > 70 && x < 150 && y > 70 && y < 150) {
-        setPixel(pixels, width, x, y, 0);
-      }
-    }
+function normalizeValue(value, maxValue) {
+  if (maxValue <= 0) {
+    return 0;
   }
 
-  for (let y = 65; y <= 155; y += 1) {
-    for (let x = 95; x <= 125; x += 1) {
-      setPixel(pixels, width, x, y, 255);
-    }
-  }
-
-  for (let y = 100; y <= 120; y += 1) {
-    for (let x = 65; x <= 155; x += 1) {
-      setPixel(pixels, width, x, y, 255);
-    }
-  }
-
-  return createImageObject(width, height, pixels, "binary", "Exemplo binário");
-}
-
-function readUploadedFile(file) {
-  const extension = file.name.split(".").pop().toLowerCase();
-
-  if (["pgm", "pbm"].includes(extension)) {
-    const reader = new FileReader();
-
-    reader.onload = () => {
-      try {
-        const image = parsePortableGrayOrBitmap(reader.result, file.name);
-        loadNewImage(image);
-      } catch (error) {
-        statusText.textContent = `Não foi possível ler o arquivo PGM/PBM: ${error.message}`;
-      }
-    };
-
-    reader.readAsArrayBuffer(file);
-    return;
-  }
-
-  const reader = new FileReader();
-  reader.onload = () => {
-    const imageElement = new Image();
-    imageElement.onload = () => {
-      const image = convertBrowserImageToGray(imageElement, file.name);
-      loadNewImage(image);
-    };
-    imageElement.src = reader.result;
-  };
-  reader.readAsDataURL(file);
+  return Math.round((value / maxValue) * 255);
 }
 
 /*
-  Conversão manual de uma imagem comum para tons de cinza.
-  A luminância é calculada a partir dos canais RGB.
+  Faz o parse manual dos formatos P1, P2, P4 e P5.
+  Isso permite usar as imagens disponibilizadas sem bibliotecas externas.
 */
-function convertBrowserImageToGray(imageElement, label) {
-  const tempCanvas = document.createElement("canvas");
-  const tempContext = tempCanvas.getContext("2d");
-
-  tempCanvas.width = imageElement.naturalWidth;
-  tempCanvas.height = imageElement.naturalHeight;
-  tempContext.drawImage(imageElement, 0, 0);
-
-  const source = tempContext.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
-  const pixels = new Uint8ClampedArray(tempCanvas.width * tempCanvas.height);
-
-  for (let index = 0; index < pixels.length; index += 1) {
-    const offset = index * 4;
-    const red = source.data[offset];
-    const green = source.data[offset + 1];
-    const blue = source.data[offset + 2];
-
-    const gray = Math.round(0.299 * red + 0.587 * green + 0.114 * blue);
-    pixels[index] = gray;
-  }
-
-  return createImageObject(
-    tempCanvas.width,
-    tempCanvas.height,
-    pixels,
-    detectMode(pixels),
-    label
-  );
-}
-
-function parsePortableGrayOrBitmap(arrayBuffer, label) {
+function parsePortableImage(arrayBuffer, label) {
   const bytes = new Uint8Array(arrayBuffer);
   const decoder = new TextDecoder("ascii");
   let cursor = 0;
@@ -295,34 +232,50 @@ function parsePortableGrayOrBitmap(arrayBuffer, label) {
     cursor += 1;
   }
 
-  let pixels;
+  const pixels = new Uint8ClampedArray(width * height);
 
   if (magic === "P1") {
-    const text = decoder.decode(bytes.slice(cursor));
-    const values = text
-      .replace(/#[^\n\r]*/g, " ")
-      .trim()
-      .split(/\s+/)
-      .map(Number);
+    const textLines = decoder
+      .decode(bytes.slice(cursor))
+      .replace(/\r/g, "")
+      .split("\n")
+      .map((line) => line.replace(/#.*/, "").trim())
+      .filter((line) => line.length > 0);
 
-    pixels = new Uint8ClampedArray(width * height);
+    const values = [];
+
+    /*
+      No formato P1 os valores podem vir separados por espaço
+      ou "colados" em sequência na mesma linha. Por isso,
+      tratamos os dois casos manualmente.
+    */
+    for (const line of textLines) {
+      if (line.includes(" ")) {
+        line.split(/\s+/).forEach((token) => {
+          if (token !== "") values.push(Number(token));
+        });
+      } else {
+        line.split("").forEach((char) => {
+          values.push(Number(char));
+        });
+      }
+    }
+
     for (let index = 0; index < pixels.length; index += 1) {
       pixels[index] = values[index] === 1 ? 0 : 255;
     }
   } else if (magic === "P2") {
-    const text = decoder.decode(bytes.slice(cursor));
-    const values = text
+    const values = decoder
+      .decode(bytes.slice(cursor))
       .replace(/#[^\n\r]*/g, " ")
       .trim()
       .split(/\s+/)
       .map(Number);
 
-    pixels = new Uint8ClampedArray(width * height);
     for (let index = 0; index < pixels.length; index += 1) {
       pixels[index] = normalizeValue(values[index] || 0, maxValue);
     }
   } else if (magic === "P4") {
-    pixels = new Uint8ClampedArray(width * height);
     let byteIndex = cursor;
 
     for (let y = 0; y < height; y += 1) {
@@ -338,14 +291,11 @@ function parsePortableGrayOrBitmap(arrayBuffer, label) {
       }
     }
   } else if (magic === "P5") {
-    pixels = new Uint8ClampedArray(width * height);
-
     if (maxValue > 255) {
       for (let index = 0; index < pixels.length; index += 1) {
         const high = bytes[cursor + index * 2];
         const low = bytes[cursor + index * 2 + 1];
-        const value = (high << 8) | low;
-        pixels[index] = normalizeValue(value, maxValue);
+        pixels[index] = normalizeValue((high << 8) | low, maxValue);
       }
     } else {
       for (let index = 0; index < pixels.length; index += 1) {
@@ -353,18 +303,102 @@ function parsePortableGrayOrBitmap(arrayBuffer, label) {
       }
     }
   } else {
-    throw new Error("Formato não suportado. Use P1, P2, P4 ou P5.");
+    throw new Error("Formato não suportado. Use P1, P2, P4, P5 ou imagens comuns do navegador.");
   }
 
-  return createImageObject(width, height, pixels, detectMode(pixels), label);
+  return createImageObject(width, height, pixels, detectMode(pixels), label, magic === "P1" || magic === "P4" ? "P1" : "P2");
 }
 
-function normalizeValue(value, maxValue) {
-  if (maxValue <= 0) {
-    return 0;
+/*
+  Converte imagens comuns em níveis de cinza.
+  Se forceBinary for verdadeiro, aplica limiar e gera uma imagem binária.
+*/
+function convertBrowserImage(imageElement, label, options = {}) {
+  const { forceBinary = false, threshold = 127 } = options;
+  const tempCanvas = document.createElement("canvas");
+  const tempContext = tempCanvas.getContext("2d");
+
+  tempCanvas.width = imageElement.naturalWidth;
+  tempCanvas.height = imageElement.naturalHeight;
+  tempContext.drawImage(imageElement, 0, 0);
+
+  const source = tempContext.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+  const pixels = new Uint8ClampedArray(tempCanvas.width * tempCanvas.height);
+
+  for (let index = 0; index < pixels.length; index += 1) {
+    const offset = index * 4;
+    const red = source.data[offset];
+    const green = source.data[offset + 1];
+    const blue = source.data[offset + 2];
+    const gray = Math.round(0.299 * red + 0.587 * green + 0.114 * blue);
+
+    pixels[index] = forceBinary ? (gray < threshold ? 0 : 255) : gray;
   }
 
-  return Math.round((value / maxValue) * 255);
+  const mode = forceBinary ? "binary" : detectMode(pixels);
+  const type = forceBinary ? "P1" : "P2";
+
+  return createImageObject(tempCanvas.width, tempCanvas.height, pixels, mode, label, type);
+}
+
+function readUploadedFile(file) {
+  const extension = file.name.split(".").pop().toLowerCase();
+
+  if (["pgm", "pbm"].includes(extension)) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        loadNewImage(parsePortableImage(reader.result, file.name));
+      } catch (error) {
+        statusText.textContent = `Não foi possível ler o arquivo PGM/PBM: ${error.message}`;
+      }
+    };
+    reader.readAsArrayBuffer(file);
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    const imageElement = new Image();
+    imageElement.onload = () => {
+      loadNewImage(convertBrowserImage(imageElement, file.name));
+    };
+    imageElement.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function loadSample(sampleKey) {
+  const sample = sampleAssets[sampleKey];
+  if (!sample) {
+    return;
+  }
+
+  try {
+    if (sample.kind === "portable") {
+      const response = await fetch(sample.path);
+      const buffer = await response.arrayBuffer();
+      loadNewImage(parsePortableImage(buffer, sample.label));
+      return;
+    }
+
+    const response = await fetch(sample.path);
+    const blob = await response.blob();
+    const imageUrl = URL.createObjectURL(blob);
+    const imageElement = new Image();
+
+    imageElement.onload = () => {
+      loadNewImage(convertBrowserImage(imageElement, sample.label, {
+        forceBinary: sample.forceBinary,
+        threshold: 127
+      }));
+      URL.revokeObjectURL(imageUrl);
+    };
+
+    imageElement.src = imageUrl;
+  } catch (error) {
+    statusText.textContent = `Falha ao carregar a imagem de exemplo: ${error.message}.`;
+  }
 }
 
 function loadNewImage(image) {
@@ -381,163 +415,7 @@ function getWorkingImage() {
     return null;
   }
 
-  if (useResultAsBaseCheckbox.checked && resultImage) {
-    return resultImage;
-  }
-
-  return baseImage;
-}
-
-function applyTransformation(type) {
-  const sourceImage = getWorkingImage();
-  if (!sourceImage) {
-    return;
-  }
-
-  let matrix;
-  let operationName;
-
-  if (type === "scale") {
-    const sx = Number(document.getElementById("scaleX").value);
-    const sy = Number(document.getElementById("scaleY").value);
-
-    if (sx === 0 || sy === 0) {
-      statusText.textContent = "Os fatores de escala não podem ser zero.";
-      return;
-    }
-
-    matrix = [
-      [sx, 0, 0],
-      [0, sy, 0],
-      [0, 0, 1]
-    ];
-    operationName = `Escala (sx=${sx}, sy=${sy})`;
-  }
-
-  if (type === "translate") {
-    const tx = Number(document.getElementById("translateX").value);
-    const ty = Number(document.getElementById("translateY").value);
-
-    matrix = [
-      [1, 0, tx],
-      [0, 1, ty],
-      [0, 0, 1]
-    ];
-    operationName = `Translação (tx=${tx}, ty=${ty})`;
-  }
-
-  if (type === "reflect") {
-    const reflectX = document.getElementById("reflectX").checked;
-    const reflectY = document.getElementById("reflectY").checked;
-
-    if (!reflectX && !reflectY) {
-      statusText.textContent = "Marque ao menos um eixo para aplicar a reflexão.";
-      return;
-    }
-
-    matrix = [
-      [reflectY ? -1 : 1, 0, 0],
-      [0, reflectX ? -1 : 1, 0],
-      [0, 0, 1]
-    ];
-    operationName = `Reflexão (${reflectX ? "eixo X" : ""}${reflectX && reflectY ? " e " : ""}${reflectY ? "eixo Y" : ""})`;
-  }
-
-  if (type === "shear") {
-    const shx = Number(document.getElementById("shearX").value);
-    const shy = Number(document.getElementById("shearY").value);
-
-    const determinant = 1 - shx * shy;
-    if (determinant === 0) {
-      statusText.textContent = "Essa combinação de cisalhamento gera matriz não inversível.";
-      return;
-    }
-
-    matrix = [
-      [1, shx, 0],
-      [shy, 1, 0],
-      [0, 0, 1]
-    ];
-    operationName = `Cisalhamento (shx=${shx}, shy=${shy})`;
-  }
-
-  if (type === "rotate") {
-    const degrees = Number(document.getElementById("rotation").value);
-    const radians = (degrees * Math.PI) / 180;
-    const cosine = Math.cos(radians);
-    const sine = Math.sin(radians);
-
-    matrix = [
-      [cosine, -sine, 0],
-      [sine, cosine, 0],
-      [0, 0, 1]
-    ];
-    operationName = `Rotação (${degrees}°)`;
-  }
-
-  const transformedImage = transformImage(sourceImage, matrix);
-  transformedImage.label = `${sourceImage.label} - ${operationName}`;
-  transformedImage.mode = sourceImage.mode;
-
-  if (sourceImage.mode === "binary") {
-    for (let index = 0; index < transformedImage.pixels.length; index += 1) {
-      transformedImage.pixels[index] = transformedImage.pixels[index] < 128 ? 0 : 255;
-    }
-  }
-
-  setResultImage(transformedImage, operationName);
-  updateSummary();
-  statusText.textContent =
-    `${operationName} aplicada com remapeamento inverso de pixels e interpolação por vizinho mais próximo. O novo quadro foi recalculado para evitar cortes na imagem transformada.`;
-}
-
-/*
-  A transformação é aplicada por coordenadas homogêneas.
-  Primeiro calculamos o retângulo de saída; depois, para cada pixel de destino,
-  usamos a matriz inversa para descobrir de qual ponto da imagem original ele veio.
-*/
-function transformImage(image, matrix) {
-  const sourceCenterX = (image.width - 1) / 2;
-  const sourceCenterY = (image.height - 1) / 2;
-
-  const corners = [
-    [-sourceCenterX, -sourceCenterY, 1],
-    [image.width - 1 - sourceCenterX, -sourceCenterY, 1],
-    [-sourceCenterX, image.height - 1 - sourceCenterY, 1],
-    [image.width - 1 - sourceCenterX, image.height - 1 - sourceCenterY, 1]
-  ];
-
-  const transformedCorners = corners.map((corner) => multiplyMatrixAndPoint(matrix, corner));
-  const xs = transformedCorners.map((point) => point[0]);
-  const ys = transformedCorners.map((point) => point[1]);
-
-  const minX = Math.floor(Math.min(...xs));
-  const maxX = Math.ceil(Math.max(...xs));
-  const minY = Math.floor(Math.min(...ys));
-  const maxY = Math.ceil(Math.max(...ys));
-
-  const newWidth = Math.max(1, maxX - minX + 1);
-  const newHeight = Math.max(1, maxY - minY + 1);
-  const newPixels = new Uint8ClampedArray(newWidth * newHeight);
-  newPixels.fill(255);
-
-  const inverseMatrix = invertAffineMatrix(matrix);
-
-  for (let targetY = 0; targetY < newHeight; targetY += 1) {
-    for (let targetX = 0; targetX < newWidth; targetX += 1) {
-      const centeredX = targetX + minX;
-      const centeredY = targetY + minY;
-      const sourcePoint = multiplyMatrixAndPoint(inverseMatrix, [centeredX, centeredY, 1]);
-
-      const sampleX = Math.round(sourcePoint[0] + sourceCenterX);
-      const sampleY = Math.round(sourcePoint[1] + sourceCenterY);
-      const value = getPixel(image, sampleX, sampleY);
-
-      setPixel(newPixels, newWidth, targetX, targetY, value);
-    }
-  }
-
-  return createImageObject(newWidth, newHeight, newPixels, image.mode, image.label);
+  return useResultAsBaseCheckbox.checked && resultImage ? resultImage : baseImage;
 }
 
 function multiplyMatrixAndPoint(matrix, point) {
@@ -548,6 +426,24 @@ function multiplyMatrixAndPoint(matrix, point) {
   ];
 }
 
+function multiplyMatrices(a, b) {
+  const result = [
+    [0, 0, 0],
+    [0, 0, 0],
+    [0, 0, 0]
+  ];
+
+  for (let row = 0; row < 3; row += 1) {
+    for (let col = 0; col < 3; col += 1) {
+      for (let k = 0; k < 3; k += 1) {
+        result[row][col] += a[row][k] * b[k][col];
+      }
+    }
+  }
+
+  return result;
+}
+
 function invertAffineMatrix(matrix) {
   const a = matrix[0][0];
   const b = matrix[0][1];
@@ -555,7 +451,6 @@ function invertAffineMatrix(matrix) {
   const d = matrix[1][0];
   const e = matrix[1][1];
   const f = matrix[1][2];
-
   const determinant = a * e - b * d;
 
   if (determinant === 0) {
@@ -567,6 +462,185 @@ function invertAffineMatrix(matrix) {
     [-d / determinant, a / determinant, (d * c - a * f) / determinant],
     [0, 0, 1]
   ];
+}
+
+function translationMatrix(tx, ty) {
+  return [
+    [1, 0, tx],
+    [0, 1, ty],
+    [0, 0, 1]
+  ];
+}
+
+function buildCenteredAffine(baseMatrix, width, height) {
+  const centerX = (width - 1) / 2;
+  const centerY = (height - 1) / 2;
+
+  return multiplyMatrices(
+    translationMatrix(centerX, centerY),
+    multiplyMatrices(baseMatrix, translationMatrix(-centerX, -centerY))
+  );
+}
+
+function computeBounds(matrix, width, height, includeOriginalFrame = false) {
+  const corners = [
+    [0, 0, 1],
+    [width - 1, 0, 1],
+    [0, height - 1, 1],
+    [width - 1, height - 1, 1]
+  ];
+
+  const transformedCorners = corners.map((corner) => multiplyMatrixAndPoint(matrix, corner));
+  const xs = transformedCorners.map((point) => point[0]);
+  const ys = transformedCorners.map((point) => point[1]);
+
+  if (includeOriginalFrame) {
+    xs.push(0, width - 1);
+    ys.push(0, height - 1);
+  }
+
+  return {
+    minX: Math.floor(Math.min(...xs)),
+    maxX: Math.ceil(Math.max(...xs)),
+    minY: Math.floor(Math.min(...ys)),
+    maxY: Math.ceil(Math.max(...ys))
+  };
+}
+
+/*
+  Aqui está o coração do item 6:
+  usamos mapeamento inverso com vizinho mais próximo e recalculamos o quadro
+  de saída para respeitar as mudanças espaciais após a transformação.
+*/
+function applyAffineTransform(image, affineMatrix, options = {}) {
+  const {
+    includeOriginalFrame = false,
+    background = image.mode === "binary" ? 255 : 0
+  } = options;
+
+  const bounds = computeBounds(affineMatrix, image.width, image.height, includeOriginalFrame);
+  const newWidth = Math.max(1, bounds.maxX - bounds.minX + 1);
+  const newHeight = Math.max(1, bounds.maxY - bounds.minY + 1);
+  const newPixels = new Uint8ClampedArray(newWidth * newHeight);
+  newPixels.fill(background);
+
+  const inverseMatrix = invertAffineMatrix(affineMatrix);
+
+  for (let targetY = 0; targetY < newHeight; targetY += 1) {
+    for (let targetX = 0; targetX < newWidth; targetX += 1) {
+      const worldX = targetX + bounds.minX;
+      const worldY = targetY + bounds.minY;
+      const [srcX, srcY] = multiplyMatrixAndPoint(inverseMatrix, [worldX, worldY, 1]);
+      const value = getNearestPixel(image, srcX, srcY, background);
+      setPixel(newPixels, newWidth, targetX, targetY, value);
+    }
+  }
+
+  return createImageObject(newWidth, newHeight, newPixels, image.mode, image.label, image.type);
+}
+
+function buildTransformation(type, image) {
+  const background = image.mode === "binary" ? 255 : 0;
+  let matrix = null;
+  let operationName = "";
+  let includeOriginalFrame = false;
+
+  if (type === "scale") {
+    const sx = Number(document.getElementById("scaleX").value);
+    const sy = Number(document.getElementById("scaleY").value);
+
+    if (sx === 0 || sy === 0) {
+      throw new Error("Os fatores de escala não podem ser zero.");
+    }
+
+    matrix = buildCenteredAffine([
+      [sx, 0, 0],
+      [0, sy, 0],
+      [0, 0, 1]
+    ], image.width, image.height);
+    operationName = `Escala (sx=${sx}, sy=${sy})`;
+  }
+
+  if (type === "translate") {
+    const tx = Number(document.getElementById("translateX").value);
+    const ty = Number(document.getElementById("translateY").value);
+
+    matrix = translationMatrix(tx, ty);
+    includeOriginalFrame = true;
+    operationName = `Translação (tx=${tx}, ty=${ty})`;
+  }
+
+  if (type === "reflect") {
+    const reflectX = document.getElementById("reflectX").checked;
+    const reflectY = document.getElementById("reflectY").checked;
+
+    if (!reflectX && !reflectY) {
+      throw new Error("Marque ao menos um eixo para aplicar a reflexão.");
+    }
+
+    matrix = buildCenteredAffine([
+      [reflectY ? -1 : 1, 0, 0],
+      [0, reflectX ? -1 : 1, 0],
+      [0, 0, 1]
+    ], image.width, image.height);
+    operationName = `Reflexão (${reflectX ? "eixo X" : ""}${reflectX && reflectY ? " e " : ""}${reflectY ? "eixo Y" : ""})`;
+  }
+
+  if (type === "shear") {
+    const shx = Number(document.getElementById("shearX").value);
+    const shy = Number(document.getElementById("shearY").value);
+
+    if ((1 - shx * shy) === 0) {
+      throw new Error("Essa combinação de cisalhamento gera matriz não inversível.");
+    }
+
+    matrix = buildCenteredAffine([
+      [1, shx, 0],
+      [shy, 1, 0],
+      [0, 0, 1]
+    ], image.width, image.height);
+    operationName = `Cisalhamento (shx=${shx}, shy=${shy})`;
+  }
+
+  if (type === "rotate") {
+    const degrees = Number(document.getElementById("rotation").value);
+    const radians = (degrees * Math.PI) / 180;
+
+    matrix = buildCenteredAffine([
+      [Math.cos(radians), -Math.sin(radians), 0],
+      [Math.sin(radians), Math.cos(radians), 0],
+      [0, 0, 1]
+    ], image.width, image.height);
+    operationName = `Rotação (${degrees}°)`;
+  }
+
+  return {
+    transformedImage: applyAffineTransform(image, matrix, {
+      includeOriginalFrame,
+      background
+    }),
+    operationName
+  };
+}
+
+function applyTransformation(type) {
+  const sourceImage = getWorkingImage();
+  if (!sourceImage) {
+    return;
+  }
+
+  const { transformedImage, operationName } = buildTransformation(type, sourceImage);
+  transformedImage.label = `${sourceImage.label} - ${operationName}`;
+
+  if (sourceImage.mode === "binary") {
+    for (let index = 0; index < transformedImage.pixels.length; index += 1) {
+      transformedImage.pixels[index] = transformedImage.pixels[index] < 128 ? 0 : 255;
+    }
+  }
+
+  setResultImage(transformedImage, operationName);
+  statusText.textContent =
+    `${operationName} aplicada com mapeamento inverso e interpolação por vizinho mais próximo. O quadro de saída foi recalculado para considerar a mudança espacial da imagem.`;
 }
 
 function resetToOriginal() {
@@ -609,8 +683,27 @@ function clearAll() {
   resultMeta.textContent = "Aguardando processamento";
   imageModeLabel.textContent = "Nenhum";
   currentTransformLabel.textContent = "Nenhuma";
-  statusText.textContent = "Tudo foi limpo. Você pode carregar outra imagem ou usar um exemplo. O processamento usa remapeamento manual e vizinho mais próximo.";
+  statusText.textContent = "Tudo foi limpo. Carregue uma imagem ou use um dos exemplos locais do item 6.";
   imageInput.value = "";
+}
+
+/*
+  Restaura os parâmetros padrão da interface sem apagar as imagens.
+  Isso ajuda a repetir demonstrações sem precisar recarregar a página.
+*/
+function resetControlsToDefault() {
+  document.getElementById("scaleX").value = defaultControlValues.scaleX;
+  document.getElementById("scaleY").value = defaultControlValues.scaleY;
+  document.getElementById("translateX").value = defaultControlValues.translateX;
+  document.getElementById("translateY").value = defaultControlValues.translateY;
+  document.getElementById("shearX").value = defaultControlValues.shearX;
+  document.getElementById("shearY").value = defaultControlValues.shearY;
+  document.getElementById("rotation").value = defaultControlValues.rotation;
+  document.getElementById("reflectX").checked = defaultControlValues.reflectX;
+  document.getElementById("reflectY").checked = defaultControlValues.reflectY;
+  useResultAsBaseCheckbox.checked = defaultControlValues.useResultAsBase;
+
+  statusText.textContent = "Os valores padrão dos controles foram restaurados.";
 }
 
 document.querySelectorAll("[data-transform]").forEach((button) => {
@@ -630,17 +723,15 @@ imageInput.addEventListener("change", (event) => {
   }
 });
 
-loadGraySampleButton.addEventListener("click", () => {
-  loadNewImage(createGraySample());
-});
-
-loadBinarySampleButton.addEventListener("click", () => {
-  loadNewImage(createBinarySample());
-});
+loadGraySampleButton.addEventListener("click", () => loadSample("gray"));
+loadBinarySampleButton.addEventListener("click", () => loadSample("binary"));
+loadBinaryJpegSampleButton.addEventListener("click", () => loadSample("binaryJpeg"));
+resetControlsButton.addEventListener("click", resetControlsToDefault);
 
 promoteResultButton.addEventListener("click", promoteResultToBase);
 resetResultButton.addEventListener("click", resetToOriginal);
 clearCanvasesButton.addEventListener("click", clearAll);
 
 clearAll();
-loadNewImage(createGraySample());
+resetControlsToDefault();
+loadSample("gray");
