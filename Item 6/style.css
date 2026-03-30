@@ -29,7 +29,8 @@ body {
 }
 
 body {
-  padding: 24px;
+  --module-nav-offset: 24px;
+  padding: 0 24px 24px;
 }
 
 button,
@@ -482,7 +483,8 @@ canvas {
 
 @media (max-width: 860px) {
   body {
-    padding: 16px;
+    --module-nav-offset: 16px;
+    padding: 0 16px 16px;
   }
 
   .hero {

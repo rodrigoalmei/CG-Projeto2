@@ -1,0 +1,99 @@
+.module-nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-self: stretch;
+  align-items: center;
+  gap: 16px;
+  width: calc(100% + (var(--module-nav-offset, 0px) * 2));
+  max-width: calc(100% + (var(--module-nav-offset, 0px) * 2));
+  padding: 10px 18px;
+  margin: 0 0 18px calc(var(--module-nav-offset, 0px) * -1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(8, 12, 18, 0.96);
+  backdrop-filter: blur(10px);
+  overflow-x: auto;
+  box-sizing: border-box;
+}
+
+.module-nav::-webkit-scrollbar {
+  height: 8px;
+}
+
+.module-nav::-webkit-scrollbar-thumb {
+  background: rgba(85, 115, 160, 0.6);
+  border-radius: 999px;
+}
+
+.module-nav__brand {
+  flex: 0 0 auto;
+  color: #ffffff;
+  font-size: 1.05rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.module-nav__links {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
+.module-nav__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: #e8eefb;
+  font-size: 0.96rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.module-nav__link:hover {
+  background: rgba(37, 131, 246, 0.18);
+  border-color: rgba(86, 157, 255, 0.55);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.module-nav__link.is-active {
+  background: linear-gradient(135deg, #3f98ff 0%, #1f78ef 100%);
+  border-color: rgba(120, 185, 255, 0.75);
+  color: #ffffff;
+  box-shadow: 0 10px 24px rgba(31, 120, 239, 0.32);
+}
+
+body > .module-nav + .page,
+body > .module-nav + .page-shell {
+  margin-top: 0 !important;
+}
+
+@media (max-width: 640px) {
+  .module-nav {
+    gap: 12px;
+    padding: 10px 12px;
+  }
+
+  .module-nav__brand {
+    font-size: 0.98rem;
+  }
+
+  .module-nav__link {
+    min-height: 38px;
+    padding: 0 14px;
+    font-size: 0.9rem;
+  }
+}
