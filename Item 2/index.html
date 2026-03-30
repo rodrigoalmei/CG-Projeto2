@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Item 2 | Morfismo Dependente do Tempo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <main class="page">
+        <header class="hero">
+            <p class="eyebrow">Computacao Grafica - Projeto 2</p>
+            <h1>Item 2 - Morfismo Dependente do Tempo</h1>
+            <p>
+                <strong>Morfismo temporal</strong> cria uma transição suave entre duas imagens (você criança e você
+                adulto).
+                O usuário marca pontos correspondentes nas duas imagens (olho esquerdo, olho direito, boca, etc),
+                e o sistema interpola geometricamente os vértices e as intensidades de cor simultaneamente,
+                gerando uma animação que deforma a imagem inicial na final.
+            </p>
+            <p class="reference">
+                <strong>Fundamento teórico:</strong> Anton & Rorres, Álgebra Linear Com Aplicações, Seção 11.21 (ou
+                10.20 em edições anteriores).
+                Fórmulas: u_i(t) = (1−t)v_i + tw_i (deformação) e ρ_t(u) = (1−t)ρ_0(v) + tρ_1(w) (blend de intensidade).
+            </p>
+        </header>
+
+        <section class="controls card">
+            <div class="file-inputs">
+                <label for="file-child">Imagem (você criança)</label>
+                <input id="file-child" type="file" accept=".pgm,.png,.jpg,.jpeg,.bmp,.webp">
+            </div>
+
+            <div class="file-inputs">
+                <label for="file-adult">Imagem (você atual)</label>
+                <input id="file-adult" type="file" accept=".pgm,.png,.jpg,.jpeg,.bmp,.webp">
+            </div>
+
+            <div id="marking-controls" style="display:none;">
+                <div class="control-group">
+                    <label>Marcar Pontos Faciais</label>
+                    <p id="point-instruction">Clique na imagem para marcar pontos em ordem (olho esq, olho dir, boca,
+                        nariz, queixo, etc)</p>
+                </div>
+                <div class="button-row">
+                    <button id="start-marking-btn" class="secondary-button" type="button">Iniciar Marcação</button>
+                    <button id="undo-point-btn" class="ghost-button" type="button">Desfazer Último</button>
+                    <button id="done-marking-btn" class="primary-button" type="button">Pronto com Pontos</button>
+                </div>
+            </div>
+
+            <div id="morph-controls" style="display:none;">
+                <div class="control-group">
+                    <label for="time-slider">Tempo t (0 = criança, 1 = adulto)</label>
+                    <input id="time-slider" type="range" min="0" max="1" step="0.01" value="0">
+                    <output id="time-value" for="time-slider">0.00</output>
+                </div>
+                <div class="button-row">
+                    <button id="render-btn" class="primary-button" type="button">Gerar Quadro</button>
+                    <button id="play-btn" class="secondary-button" type="button">Play</button>
+                    <button id="reset-morph-btn" class="ghost-button" type="button">Limpar & Recomeçar</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="viewers">
+            <article class="card">
+                <h2>Imagem (Criança)</h2>
+                <canvas id="child-canvas" width="280" height="280"></canvas>
+            </article>
+
+            <article class="card">
+                <h2>Imagem (Adulto)</h2>
+                <canvas id="adult-canvas" width="280" height="280"></canvas>
+            </article>
+
+            <article class="card result-card">
+                <h2>Morfismo no Tempo t</h2>
+                <canvas id="morph-canvas" width="280" height="280"></canvas>
+            </article>
+        </section>
+
+        <p id="status" class="status">Carregue as duas imagens para iniciar.</p>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/delaunator@5.3.0"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
