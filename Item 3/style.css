@@ -169,6 +169,12 @@ h1 {
     letter-spacing: 0.01em;
 }
 
+.canvas-frame {
+    position: relative;
+    display: inline-block;
+    margin-top: 18px;
+}
+
 canvas {
     width: var(--canvas-size);
     height: var(--canvas-size);
@@ -177,78 +183,15 @@ canvas {
     border-radius: 14px;
     background: #fff;
     image-rendering: pixelated;
-    margin: 18px auto 0 auto;
+    margin: 0 auto;
     display: block;
     box-shadow: 0 2px 12px #0a7cc210;
-}
-
-.loupe {
-    margin-top: 18px;
-    width: 100%;
-}
-
-.loupe-meta {
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    align-items: center;
-    font-size: 0.95rem;
-    color: var(--muted);
-    margin-bottom: 8px;
 }
 
 .center-label {
     color: var(--accent);
     font-weight: 700;
     font-family: Consolas, "Courier New", monospace;
-}
-
-.loupe-table-wrap {
-    overflow-x: auto;
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    background: #f6f8fb;
-}
-
-.loupe-table {
-    border-collapse: collapse;
-    width: max-content;
-    min-width: 100%;
-    font-size: 0.82rem;
-    color: #10253d;
-    font-family: Consolas, "Courier New", monospace;
-}
-
-.loupe-table th,
-.loupe-table td {
-    border: 1px solid #d7e0eb;
-    min-width: 26px;
-    text-align: center;
-    padding: 4px 3px;
-}
-
-.loupe-table thead th,
-.loupe-table .axis {
-    background: #e8f4ff;
-    color: #0a7cc2;
-    font-weight: 700;
-}
-
-.loupe-table .out {
-    background: #f3f5f8;
-    color: #b0b0b0;
-}
-
-.loupe-table .hover {
-    background: #7a1f1f;
-    color: #fff;
-    font-weight: 700;
-}
-
-.loupe-table .center {
-    background: #0a7cc2;
-    color: #fff;
-    font-weight: 700;
 }
 
 @media (max-width: 900px) {

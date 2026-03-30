@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Item 3 - Transformações de Intensidade</title>
+    <link rel="stylesheet" href="../shared/pixel-inspector.css">
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -35,28 +36,35 @@
         <section class="grid">
             <article class="card">
                 <h2>Imagem Original</h2>
-                <canvas id="original"></canvas>
-                <div class="loupe">
-                    <div class="loupe-meta">
+                <div class="canvas-frame">
+                    <canvas id="original"></canvas>
+                    <div class="pixel-marker" id="original-marker"></div>
+                </div>
+                <div class="pixel-viewer">
+                    <div class="pixel-info-line">
                         <span>Lupa: Eixo X/Y</span>
                         <span id="original-center" class="center-label">Centro: [0, 0]</span>
                     </div>
-                    <div id="original-loupe" class="loupe-table-wrap"></div>
+                    <div id="original-loupe" class="pixel-table-shell"></div>
                 </div>
             </article>
             <article class="card">
                 <h2>Transformada</h2>
-                <canvas id="result"></canvas>
-                <div class="loupe">
-                    <div class="loupe-meta">
+                <div class="canvas-frame">
+                    <canvas id="result"></canvas>
+                    <div class="pixel-marker" id="result-marker"></div>
+                </div>
+                <div class="pixel-viewer">
+                    <div class="pixel-info-line">
                         <span>Lupa: Eixo X/Y</span>
                         <span id="result-center" class="center-label">Centro: [0, 0]</span>
                     </div>
-                    <div id="result-loupe" class="loupe-table-wrap"></div>
+                    <div id="result-loupe" class="pixel-table-shell"></div>
                 </div>
             </article>
         </section>
     </main>
+    <script src="../shared/pixel-inspector.js"></script>
     <script src="script.js"></script>
 </body>
 

@@ -1,0 +1,74 @@
+.pixel-marker {
+  position: absolute;
+  display: none;
+  border: 2px solid #ff3b30;
+  pointer-events: none;
+  box-sizing: border-box;
+  min-width: 8px;
+  min-height: 8px;
+}
+
+.pixel-viewer {
+  margin-top: 16px;
+  width: 100%;
+}
+
+.pixel-info-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  color: #607089;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.pixel-table-shell {
+  overflow: auto;
+  border: 1px solid #dbe3ef;
+  border-radius: 14px;
+  background: #0f172a;
+}
+
+.pixel-grid {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: collapse;
+  color: #d8e4ff;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 12px;
+}
+
+.pixel-grid th,
+.pixel-grid td {
+  min-width: 30px;
+  padding: 6px 5px;
+  text-align: center;
+  border: 1px solid #24314a;
+}
+
+.pixel-grid th {
+  background: #172033;
+  color: #94a3b8;
+  font-weight: 700;
+}
+
+.pixel-grid td {
+  background: #0f172a;
+}
+
+.pixel-grid td.outside {
+  color: #475569;
+}
+
+.pixel-grid td.center {
+  background: #1d4ed8;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.pixel-grid td.hovered {
+  background: #dc2626;
+  color: #ffffff;
+  font-weight: 700;
+}

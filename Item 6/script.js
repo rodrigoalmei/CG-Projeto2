@@ -32,8 +32,7 @@ const viewers = {
     meta: originalMeta,
     marker: document.getElementById("originalMarker"),
     coordLabel: document.getElementById("originalCoordLabel"),
-    pixelTable: document.getElementById("originalPixelTable"),
-    state: { pos: { x: 0, y: 0 }, hover: null }
+    pixelTable: document.getElementById("originalPixelTable")
   },
   result: {
     canvas: resultCanvas,
@@ -41,10 +40,25 @@ const viewers = {
     meta: resultMeta,
     marker: document.getElementById("resultMarker"),
     coordLabel: document.getElementById("resultCoordLabel"),
-    pixelTable: document.getElementById("resultPixelTable"),
-    state: { pos: { x: 0, y: 0 }, hover: null }
+    pixelTable: document.getElementById("resultPixelTable")
   }
 };
+
+viewers.original.inspector = window.PixelInspector.create({
+  canvas: viewers.original.canvas,
+  marker: viewers.original.marker,
+  coordLabel: viewers.original.coordLabel,
+  tableContainer: viewers.original.pixelTable,
+  markerMode: "hover"
+});
+
+viewers.result.inspector = window.PixelInspector.create({
+  canvas: viewers.result.canvas,
+  marker: viewers.result.marker,
+  coordLabel: viewers.result.coordLabel,
+  tableContainer: viewers.result.pixelTable,
+  markerMode: "hover"
+});
 
 const sampleAssets = {
   lena: { label: "lena.pgm", path: "./assets/lena.pgm", kind: "portable" },
@@ -140,9 +154,7 @@ function drawViewerImage(image, viewer, emptyLabel) {
   if (!image) {
     clearCanvas(viewer.canvas, viewer.context);
     viewer.meta.textContent = emptyLabel;
-    viewer.coordLabel.textContent = "Centro: [ - , - ]";
-    viewer.pixelTable.innerHTML = "";
-    viewer.marker.style.display = "none";
+    viewer.inspector.clear();
     return;
   }
 
@@ -161,129 +173,15 @@ function drawViewerImage(image, viewer, emptyLabel) {
 
   viewer.context.putImageData(imageData, 0, 0);
   viewer.meta.textContent = `${image.width} x ${image.height} px`;
-
-  viewer.state.pos = {
-    x: Math.floor(image.width / 2),
-    y: Math.floor(image.height / 2)
-  };
-  viewer.state.hover = null;
-
-  renderPixelInspector(image, viewer);
+  viewer.inspector.setImage({
+    width: image.width,
+    height: image.height,
+    pixels: image.pixels
+  });
 }
 
 // Monta a tabela 15x15 de vizinhança ao redor do pixel selecionado.
 // Isso replica a ideia do projeto-base para facilitar a inspeção do resultado.
-function renderPixelInspector(image, viewer) {
-  if (!image) {
-    viewer.coordLabel.textContent = "Centro: [ - , - ]";
-    viewer.pixelTable.innerHTML = "";
-    return;
-  }
-
-  const { x: centerX, y: centerY } = viewer.state.pos;
-  viewer.coordLabel.textContent = `Centro: [ ${centerX}, ${centerY} ]`;
-
-  const radius = 7;
-  const startX = centerX - radius;
-  const startY = centerY - radius;
-
-  let html = '<table class="pixel-grid"><thead><tr>';
-  html += '<th>X→<br>Y↓</th>';
-
-  for (let j = 0; j < 15; j += 1) {
-    const x = startX + j;
-    html += `<th>${x >= 0 && x < image.width ? x : ""}</th>`;
-  }
-
-  html += "</tr></thead><tbody>";
-
-  for (let i = 0; i < 15; i += 1) {
-    const y = startY + i;
-    const validY = y >= 0 && y < image.height;
-    html += `<tr><th>${validY ? y : ""}</th>`;
-
-    for (let j = 0; j < 15; j += 1) {
-      const x = startX + j;
-      const out = !validY || x < 0 || x >= image.width;
-      const value = out ? "-" : Math.round(image.pixels[y * image.width + x]);
-      const isCenter = x === centerX && y === centerY;
-      const isHover = viewer.state.hover && viewer.state.hover.x === x && viewer.state.hover.y === y;
-
-      let className = "";
-      if (out) className = "outside";
-      if (isCenter) className = "center";
-      if (isHover) className = "hovered";
-
-      html += `<td class="${className}">${value}</td>`;
-    }
-
-    html += "</tr>";
-  }
-
-  html += "</tbody></table>";
-  viewer.pixelTable.innerHTML = html;
-}
-
-// Posiciona o marcador visual sobre o pixel atualmente destacado pela lupa.
-function updateMarkerPosition(image, viewer, point) {
-  if (!image || !point) {
-    viewer.marker.style.display = "none";
-    return;
-  }
-
-  const rect = viewer.canvas.getBoundingClientRect();
-  const markerWidth = Math.max(rect.width / image.width, 8);
-  const markerHeight = Math.max(rect.height / image.height, 8);
-  const left = (point.x / image.width) * rect.width;
-  const top = (point.y / image.height) * rect.height;
-
-  viewer.marker.style.display = "block";
-  viewer.marker.style.width = `${markerWidth}px`;
-  viewer.marker.style.height = `${markerHeight}px`;
-  viewer.marker.style.left = `${left - markerWidth / 2}px`;
-  viewer.marker.style.top = `${top - markerHeight / 2}px`;
-}
-
-// Liga eventos de mouse ao canvas para hover e clique.
-// O clique redefine o centro da lupa e o hover atualiza a pré-visualização.
-function attachViewerInteractions(imageGetter, viewer) {
-  viewer.canvas.addEventListener("mousemove", (event) => {
-    const image = imageGetter();
-    if (!image) return;
-
-    const rect = viewer.canvas.getBoundingClientRect();
-    const scaleX = image.width / rect.width;
-    const scaleY = image.height / rect.height;
-    const x = Math.floor((event.clientX - rect.left) * scaleX);
-    const y = Math.floor((event.clientY - rect.top) * scaleY);
-
-    if (x >= 0 && x < image.width && y >= 0 && y < image.height) {
-      viewer.state.hover = { x, y };
-      updateMarkerPosition(image, viewer, viewer.state.hover);
-      renderPixelInspector(image, viewer);
-    } else {
-      viewer.state.hover = null;
-      updateMarkerPosition(image, viewer, null);
-      renderPixelInspector(image, viewer);
-    }
-  });
-
-  viewer.canvas.addEventListener("mouseleave", () => {
-    const image = imageGetter();
-    viewer.state.hover = null;
-    updateMarkerPosition(image, viewer, null);
-    renderPixelInspector(image, viewer);
-  });
-
-  viewer.canvas.addEventListener("click", () => {
-    const image = imageGetter();
-    if (!image || !viewer.state.hover) return;
-
-    viewer.state.pos = { ...viewer.state.hover };
-    renderPixelInspector(image, viewer);
-  });
-}
-
 function normalizeValue(value, maxValue) {
   if (maxValue <= 0) return 0;
   return Math.round((value / maxValue) * 255);
@@ -764,9 +662,6 @@ resetControlsButton.addEventListener("click", resetControlsToDefault);
 promoteResultButton.addEventListener("click", promoteResultToBase);
 resetResultButton.addEventListener("click", resetToOriginal);
 clearCanvasesButton.addEventListener("click", clearAll);
-
-attachViewerInteractions(() => baseImage, viewers.original);
-attachViewerInteractions(() => resultImage, viewers.result);
 
 clearAll();
 resetControlsToDefault();
