@@ -21,22 +21,6 @@
 
         <section class="controls card">
             <div class="control-group">
-                <label for="img-selector">Imagem de entrada</label>
-                <select id="img-selector">
-                    <optgroup label="Imagens Binarias">
-                        <option selected value="0">Digital</option>
-                        <option value="2">Texto</option>
-                        <option value="3">Mapa</option>
-                    </optgroup>
-                    <optgroup label="Imagens Em Niveis De Cinza">
-                        <option value="4">Lena</option>
-                        <option value="5">Airplane</option>
-                        <option value="9">Tomografia</option>
-                    </optgroup>
-                </select>
-            </div>
-
-            <div class="control-group">
                 <label for="upload-input">Upload de imagem (PBM/PGM)</label>
                 <input id="upload-input" type="file" accept=".pbm,.pgm,text/plain">
             </div>
@@ -57,11 +41,11 @@
                         <option value="9">Afinamento (Thinning)</option>
                     </optgroup>
                     <optgroup label="Operadores Em Niveis De Cinza">
-                        <option value="10">Erosao</option>
-                        <option value="11">Dilatacao</option>
-                        <option value="12">Abertura</option>
-                        <option value="13">Fechamento</option>
-                        <option value="14">Gradiente</option>
+                        <option value="10">Erosao Gray</option>
+                        <option value="11">Dilatacao Gray</option>
+                        <option value="12">Abertura Gray</option>
+                        <option value="13">Fechamento Gray</option>
+                        <option value="14">Gradiente Morfológico Gray</option>
                         <option value="15">Top-Hat</option>
                         <option value="16">Bottom-Hat</option>
                     </optgroup>
@@ -82,12 +66,20 @@
                     <input type="number" name="array[]" value="0" min="0" max="1" step="1" class="matrix-input">
                 </form>
             </div>
+
+            <div class="control-group">
+                <label for="apply-btn">Aplicacao</label>
+                <button id="apply-btn" class="primary-button" type="button">Aplicar</button>
+            </div>
         </section>
 
         <section class="viewers">
             <article class="card">
                 <h2>Imagem original</h2>
-                <canvas id="original-img" width="256" height="256"></canvas>
+                <div class="canvas-stage">
+                    <canvas id="original-img" width="256" height="256"></canvas>
+                    <div id="original-hover-marker" class="hover-marker"></div>
+                </div>
                 <div class="loupe">
                     <div class="loupe-meta">
                         <span>Lupa: Eixo X/Y</span>
@@ -99,7 +91,10 @@
 
             <article class="card">
                 <h2>Imagem processada</h2>
-                <canvas id="processed-img" width="256" height="256"></canvas>
+                <div class="canvas-stage">
+                    <canvas id="processed-img" width="256" height="256"></canvas>
+                    <div id="processed-hover-marker" class="hover-marker"></div>
+                </div>
                 <div class="loupe">
                     <div class="loupe-meta">
                         <span>Lupa: Eixo X/Y</span>
@@ -107,14 +102,10 @@
                     </div>
                     <div id="processed-loupe" class="loupe-table-wrap"></div>
                 </div>
-                <div class="button-row">
-                    <button id="apply-again-btn" class="secondary-button" type="button">Reusar</button>
-                    <button id="download-btn" class="ghost-button" type="button">Baixar</button>
-                </div>
             </article>
         </section>
 
-        <p id="status" class="status">Carregando imagens de exemplo...</p>
+        <p id="status" class="status">Carregue uma imagem para aplicar os operadores morfologicos.</p>
     </main>
 
     <script src="script.js"></script>

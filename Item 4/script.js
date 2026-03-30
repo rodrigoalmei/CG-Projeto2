@@ -1,3 +1,4 @@
+// Referencias dos elementos da interface (canvas, botoes e controles).
 const originalCanvas = document.getElementById("original-img");
 const equalizedCanvas = document.getElementById("processed-img");
 const originalHistCanvas = document.getElementById("original-hist");
@@ -13,7 +14,10 @@ const originalLoupeWrap = document.getElementById("original-loupe");
 const processedLoupeWrap = document.getElementById("processed-loupe");
 const originalCenterText = document.getElementById("original-center");
 const processedCenterText = document.getElementById("processed-center");
+const originalHoverMarker = document.getElementById("original-hover-marker");
+const processedHoverMarker = document.getElementById("processed-hover-marker");
 
+// Estado principal da pagina: imagens, posicoes da lupa e pontos de hover.
 let originalImage = null;
 let equalizedImage = null;
 let originalHover = null;
@@ -21,6 +25,7 @@ let processedHover = null;
 let originalCenter = { x: 0, y: 0 };
 let processedCenter = { x: 0, y: 0 };
 
+// Mapeamento das imagens de exemplo disponiveis no seletor.
 const imagesPath = {
     0: "assets/lena.pgm",
     2: "assets/airplane.pgm",
@@ -30,16 +35,19 @@ const imagesPath = {
     6: "assets/nathanadult.pgm"
 };
 
+// Limita um valor para permanecer dentro do intervalo [min, max].
 function clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
 }
 
+// Compara dois pontos (x,y), tratando null de forma segura.
 function samePoint(a, b) {
     if (!a && !b) return true;
     if (!a || !b) return false;
     return a.x === b.x && a.y === b.y;
 }
 
+// Retorna o centro geometrico da imagem para inicializar a lupa.
 function getCenterByImage(img) {
     if (!img) return { x: 0, y: 0 };
     return {
@@ -48,6 +56,7 @@ function getCenterByImage(img) {
     };
 }
 
+// Faz parse de um arquivo PGM ASCII (P2), removendo comentarios e normalizando para 0..255.
 function parsePortableImage(text) {
     const withoutComments = text
         .replace(/#[^\n\r]*/g, " ")
@@ -83,6 +92,7 @@ function parsePortableImage(text) {
     return { type, width, height, data };
 }
 
+// Desenha uma matriz de tons de cinza no canvas (1 valor -> R=G=B).
 function drawGrayImage(canvas, img) {
     const ctx = canvas.getContext("2d");
     canvas.width = img.width;
@@ -104,6 +114,7 @@ function drawGrayImage(canvas, img) {
     ctx.putImageData(imageData, 0, 0);
 }
 
+// Limpa um canvas e deixa fundo branco.
 function clearCanvas(canvas) {
     const ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -111,35 +122,40 @@ function clearCanvas(canvas) {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
-function drawFocusMarker(canvas, point, color) {
-    if (!point) return;
-    const ctx = canvas.getContext("2d");
+// Atualiza o marcador de hover sobreposto ao canvas (estilo do projeto base).
+function updateHoverOverlay(markerEl, hoverPoint, dims) {
+    if (!markerEl || !hoverPoint || !dims || !dims.width || !dims.height) {
+        if (markerEl) markerEl.style.display = "none";
+        return;
+    }
 
-    ctx.save();
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 1;
-    ctx.strokeRect(point.x - 0.5, point.y - 0.5, 1, 1);
-    ctx.fillStyle = color;
-    ctx.fillRect(point.x, point.y, 1, 1);
-    ctx.restore();
+    const widthPercent = Math.max((1 / dims.width) * 100, 2);
+    const heightPercent = Math.max((1 / dims.height) * 100, 2);
+
+    markerEl.style.display = "block";
+    markerEl.style.left = `${(hoverPoint.x / dims.width) * 100}%`;
+    markerEl.style.top = `${(hoverPoint.y / dims.height) * 100}%`;
+    markerEl.style.width = `${widthPercent}%`;
+    markerEl.style.height = `${heightPercent}%`;
 }
 
+// Redesenha as imagens com os marcadores de hover.
 function redrawCanvasesWithMarkers() {
     if (!originalImage) return;
 
     drawGrayImage(originalCanvas, originalImage);
-    drawFocusMarker(originalCanvas, originalCenter, "#2d7ff9");
-    drawFocusMarker(originalCanvas, originalHover, "#ff3b30");
 
     if (equalizedImage) {
         drawGrayImage(equalizedCanvas, equalizedImage);
     } else {
         clearCanvas(equalizedCanvas);
     }
-    drawFocusMarker(equalizedCanvas, processedCenter, "#2d7ff9");
-    drawFocusMarker(equalizedCanvas, processedHover, "#ff3b30");
+
+    updateHoverOverlay(originalHoverMarker, originalHover, originalImage);
+    updateHoverOverlay(processedHoverMarker, processedHover, equalizedImage || originalImage);
 }
 
+// Le um pixel de uma imagem; quando nao existe imagem pode retornar zero como fallback.
 function getPixelFromImage(img, x, y, fallbackZero) {
     if (!img) {
         return fallbackZero ? 0 : "-";
@@ -150,6 +166,7 @@ function getPixelFromImage(img, x, y, fallbackZero) {
     return img.data[y][x];
 }
 
+// Gera a tabela 15x15 da lupa ao redor do centro selecionado.
 function renderLoupe({ wrap, label, img, center, hover, width, height, fallbackZero = false }) {
     label.textContent = `Centro: [${center.x}, ${center.y}]`;
 
@@ -205,6 +222,7 @@ function renderLoupe({ wrap, label, img, center, hover, width, height, fallbackZ
     wrap.innerHTML = html;
 }
 
+// Atualiza as duas lupas (original e processada), mantendo centros dentro dos limites.
 function renderLoupes() {
     if (!originalImage) {
         originalLoupeWrap.innerHTML = "";
@@ -245,6 +263,7 @@ function renderLoupes() {
     });
 }
 
+// Converte coordenada de mouse (tela) para coordenada de pixel da imagem.
 function updateHoverFromMouse(event, canvas, dims, setHover) {
     if (!dims || !dims.width || !dims.height) {
         setHover(null);
@@ -264,6 +283,7 @@ function updateHoverFromMouse(event, canvas, dims, setHover) {
     }
 }
 
+// Permite interacao direta na tabela da lupa (hover e clique para fixar centro).
 function setupLoupeTableInteraction({ wrap, getDimensions, getHover, setHover, getCenter, setCenter }) {
     wrap.addEventListener("mousemove", (event) => {
         const cell = event.target.closest("td[data-x][data-y]");
@@ -324,6 +344,7 @@ function setupLoupeTableInteraction({ wrap, getDimensions, getHover, setHover, g
     });
 }
 
+// Calcula histograma de 256 niveis de cinza.
 function buildHistogram(img) {
     const hist = new Array(256).fill(0);
     for (let y = 0; y < img.height; y += 1) {
@@ -335,6 +356,7 @@ function buildHistogram(img) {
     return hist;
 }
 
+// Converte frequencia absoluta em probabilidade p(i)=h(i)/N.
 function getHistProb(hist, n) {
     const h = [];
     for (let i = 0; i < 256; i += 1) {
@@ -343,6 +365,7 @@ function getHistProb(hist, n) {
     return h;
 }
 
+// Calcula a distribuicao acumulada (CDF/FDA).
 function getAccumulatedProba(histProb) {
     const acc = [];
     let sum = 0;
@@ -353,6 +376,7 @@ function getAccumulatedProba(histProb) {
     return acc;
 }
 
+// Gera a tabela de mapeamento s(i)=round(CDF(i)*255).
 function getScaleArr(acc) {
     const scale = new Array(256).fill(0);
     for (let i = 0; i < 256; i += 1) {
@@ -361,6 +385,7 @@ function getScaleArr(acc) {
     return scale;
 }
 
+// Executa a equalizacao aplicando a tabela de mapeamento em cada pixel.
 function equalize(img) {
     const hist = buildHistogram(img);
     const histProb = getHistProb(hist, img.width * img.height);
@@ -383,6 +408,7 @@ function equalize(img) {
     };
 }
 
+// Desenha barras do histograma e sobrepoe a curva acumulada (CDF/FDA).
 function drawHistogram(canvas, histogram, color) {
     const ctx = canvas.getContext("2d");
     const width = canvas.width;
@@ -427,6 +453,7 @@ function drawHistogram(canvas, histogram, color) {
     ctx.stroke();
 }
 
+// Serializa uma imagem para texto PGM (P2).
 function imageToText(img) {
     let text = `${img.type}\n${img.width} ${img.height}\n255\n`;
     for (let y = 0; y < img.height; y += 1) {
@@ -435,6 +462,7 @@ function imageToText(img) {
     return text;
 }
 
+// Faz download da imagem processada como arquivo .pgm.
 function downloadImage(img) {
     const blob = new Blob([imageToText(img)], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
@@ -447,6 +475,7 @@ function downloadImage(img) {
     URL.revokeObjectURL(url);
 }
 
+// Atualiza toda a visualizacao principal (canvas + lupa).
 function updateView() {
     if (!originalImage) {
         return;
@@ -456,6 +485,7 @@ function updateView() {
     renderLoupes();
 }
 
+// Reseta centros da lupa para o meio da imagem atual.
 function resetCenters() {
     originalCenter = getCenterByImage(originalImage);
     processedCenter = equalizedImage ? getCenterByImage(equalizedImage) : { ...originalCenter };
@@ -463,6 +493,7 @@ function resetCenters() {
     processedHover = null;
 }
 
+// Carrega imagem escolhida por upload e reinicia o estado de processamento.
 async function loadFromFile(file) {
     const text = await file.text();
     originalImage = parsePortableImage(text);
@@ -474,6 +505,7 @@ async function loadFromFile(file) {
     statusText.textContent = `Imagem carregada via upload: ${file.name}. Clique em Equalizar para gerar a processada.`;
 }
 
+// Carrega uma imagem de exemplo do seletor.
 async function loadLena() {
     const path = imagesPath[imgSelector.value] || "assets/lena.pgm";
     statusText.textContent = `Carregando ${path}...`;
@@ -490,6 +522,7 @@ async function loadLena() {
     statusText.textContent = "Imagem original carregada. Clique em Equalizar para gerar a processada.";
 }
 
+// Troca de imagem predefinida.
 imgSelector.addEventListener("change", () => {
     uploadInput.value = "";
     loadLena().catch((error) => {
@@ -497,6 +530,7 @@ imgSelector.addEventListener("change", () => {
     });
 });
 
+// Upload manual de arquivo PGM.
 uploadInput.addEventListener("change", () => {
     const file = uploadInput.files && uploadInput.files[0];
     if (!file) return;
@@ -506,6 +540,7 @@ uploadInput.addEventListener("change", () => {
     });
 });
 
+// Aplica equalizacao na imagem original.
 equalizeBtn.addEventListener("click", () => {
     if (!originalImage) {
         return;
@@ -517,16 +552,19 @@ equalizeBtn.addEventListener("click", () => {
     statusText.textContent = "Equalizacao recalculada com sucesso.";
 });
 
+// Exibe histograma da imagem original.
 showOriginalHistBtn.addEventListener("click", () => {
     if (!originalImage) return;
     drawHistogram(originalHistCanvas, buildHistogram(originalImage), "#2f8fca");
 });
 
+// Exibe histograma da imagem equalizada.
 showProcessedHistBtn.addEventListener("click", () => {
     if (!equalizedImage) return;
     drawHistogram(equalizedHistCanvas, buildHistogram(equalizedImage), "#0f6a8f");
 });
 
+// Baixa resultado processado.
 downloadBtn.addEventListener("click", () => {
     if (!equalizedImage) {
         statusText.textContent = "Nenhuma imagem equalizada para baixar.";
@@ -535,6 +573,7 @@ downloadBtn.addEventListener("click", () => {
     downloadImage(equalizedImage);
 });
 
+// Interacao de hover/click no canvas original.
 originalCanvas.addEventListener("mousemove", (event) => {
     updateHoverFromMouse(event, originalCanvas, originalImage, (nextHover) => {
         originalHover = nextHover;
@@ -557,6 +596,7 @@ originalCanvas.addEventListener("click", () => {
     }
 });
 
+// Interacao de hover/click no canvas processado.
 equalizedCanvas.addEventListener("mousemove", (event) => {
     const dims = equalizedImage || originalImage;
     updateHoverFromMouse(event, equalizedCanvas, dims, (nextHover) => {
@@ -580,6 +620,7 @@ equalizedCanvas.addEventListener("click", () => {
     }
 });
 
+// Ativa interacao na tabela da lupa da imagem original.
 setupLoupeTableInteraction({
     wrap: originalLoupeWrap,
     getDimensions: () => originalImage,
@@ -593,6 +634,7 @@ setupLoupeTableInteraction({
     }
 });
 
+// Ativa interacao na tabela da lupa da imagem processada.
 setupLoupeTableInteraction({
     wrap: processedLoupeWrap,
     getDimensions: () => equalizedImage || originalImage,
@@ -606,6 +648,7 @@ setupLoupeTableInteraction({
     }
 });
 
+// Carga inicial da tela.
 loadLena().catch((error) => {
     statusText.textContent = `Erro ao carregar imagem: ${error.message}`;
 });

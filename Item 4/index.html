@@ -36,7 +36,10 @@
         <section class="grid">
             <article class="card">
                 <h2>Imagem Original</h2>
-                <canvas id="original-img" width="256" height="256"></canvas>
+                <div class="canvas-stage">
+                    <canvas id="original-img" width="256" height="256"></canvas>
+                    <div id="original-hover-marker" class="hover-marker"></div>
+                </div>
                 <div class="loupe">
                     <div class="loupe-meta">
                         <span>Lupa: Eixo X/Y</span>
@@ -48,7 +51,10 @@
 
             <article class="card">
                 <h2>Imagem Equalizada</h2>
-                <canvas id="processed-img" width="256" height="256"></canvas>
+                <div class="canvas-stage">
+                    <canvas id="processed-img" width="256" height="256"></canvas>
+                    <div id="processed-hover-marker" class="hover-marker"></div>
+                </div>
                 <div class="loupe">
                     <div class="loupe-meta">
                         <span>Lupa: Eixo X/Y</span>

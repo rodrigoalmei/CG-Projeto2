@@ -156,6 +156,39 @@ canvas {
     border-radius: 10px;
     background: #fff;
     image-rendering: pixelated;
+    cursor: crosshair;
+}
+
+.canvas-stage {
+    position: relative;
+    width: 100%;
+    min-height: 256px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #000;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.canvas-stage canvas {
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    display: block;
+}
+
+.hover-marker {
+    position: absolute;
+    border: 1px solid #ef4444;
+    pointer-events: none;
+    z-index: 10;
+    transform: translate(-50%, -50%);
+    min-width: 6px;
+    min-height: 6px;
+    box-sizing: border-box;
+    display: none;
 }
 
 .loupe {

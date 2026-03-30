@@ -1,7 +1,5 @@
-const imgSelector = document.getElementById("img-selector");
 const filterSelector = document.getElementById("input-filter");
-const applyAgainBtn = document.getElementById("apply-again-btn");
-const downloadBtn = document.getElementById("download-btn");
+const applyBtn = document.getElementById("apply-btn");
 const uploadInput = document.getElementById("upload-input");
 const statusText = document.getElementById("status");
 const inputMatrix = document.getElementById("input-matrix");
@@ -13,15 +11,8 @@ const originalLoupeWrap = document.getElementById("original-loupe");
 const processedLoupeWrap = document.getElementById("processed-loupe");
 const originalCenterText = document.getElementById("original-center");
 const processedCenterText = document.getElementById("processed-center");
-
-const imagesPath = {
-    0: "assets/fingerprint.pbm",
-    2: "assets/text.pbm",
-    3: "assets/map.pbm",
-    4: "assets/lena.pgm",
-    5: "assets/airplane.pgm",
-    9: "assets/tomography.pgm"
-};
+const originalHoverMarker = document.getElementById("original-hover-marker");
+const processedHoverMarker = document.getElementById("processed-hover-marker");
 
 let kernelList = [0, 1, 0, 1, 1, 1, 0, 1, 0];
 let originalImage = null;
@@ -132,29 +123,40 @@ function drawImage(canvas, img) {
     ctx.putImageData(imageData, 0, 0);
 }
 
-function drawFocusMarker(canvas, point, color) {
-    if (!point) return;
-    const ctx = canvas.getContext("2d");
+function updateHoverOverlay(markerEl, hoverPoint, dims) {
+    if (!markerEl || !hoverPoint || !dims || !dims.width || !dims.height) {
+        if (markerEl) markerEl.style.display = "none";
+        return;
+    }
 
-    ctx.save();
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 1;
-    ctx.strokeRect(point.x - 0.5, point.y - 0.5, 1, 1);
-    ctx.fillStyle = color;
-    ctx.fillRect(point.x, point.y, 1, 1);
-    ctx.restore();
+    const widthPercent = Math.max((1 / dims.width) * 100, 2);
+    const heightPercent = Math.max((1 / dims.height) * 100, 2);
+
+    markerEl.style.display = "block";
+    markerEl.style.left = `${(hoverPoint.x / dims.width) * 100}%`;
+    markerEl.style.top = `${(hoverPoint.y / dims.height) * 100}%`;
+    markerEl.style.width = `${widthPercent}%`;
+    markerEl.style.height = `${heightPercent}%`;
 }
 
 function redrawCanvasesWithMarkers() {
-    if (!originalImage || !processedImage) return;
+    if (!originalImage) return;
 
     drawImage(originalCanvas, originalImage);
-    drawFocusMarker(originalCanvas, originalCenter, "#2d7ff9");
-    drawFocusMarker(originalCanvas, originalHover, "#ff3b30");
 
-    drawImage(processedCanvas, processedImage);
-    drawFocusMarker(processedCanvas, processedCenter, "#2d7ff9");
-    drawFocusMarker(processedCanvas, processedHover, "#ff3b30");
+    if (processedImage) {
+        drawImage(processedCanvas, processedImage);
+    } else {
+        const ctx = processedCanvas.getContext("2d");
+        processedCanvas.width = originalImage.width;
+        processedCanvas.height = originalImage.height;
+        ctx.clearRect(0, 0, processedCanvas.width, processedCanvas.height);
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, processedCanvas.width, processedCanvas.height);
+    }
+
+    updateHoverOverlay(originalHoverMarker, originalHover, originalImage);
+    updateHoverOverlay(processedHoverMarker, processedHover, processedImage || originalImage);
 }
 
 function clamp(value, min, max) {
@@ -271,7 +273,7 @@ function renderLoupes() {
         hover: processedHover,
         width: processedWidth,
         height: processedHeight,
-        fallbackZero: false
+        fallbackZero: !processedImage
     });
 }
 
@@ -352,7 +354,7 @@ function setupLoupeTableInteraction({ wrap, getDimensions, getHover, setHover, g
 }
 
 function syncView() {
-    if (!originalImage || !processedImage) return;
+    if (!originalImage) return;
     redrawCanvasesWithMarkers();
     renderLoupes();
 }
@@ -380,7 +382,7 @@ function operationBinary(img, width, height, kernel, operate = "erosion") {
                     const ni = i + ki;
                     const nj = j + kj;
                     if (ni >= 0 && ni < height && nj >= 0 && nj < width) {
-                        if (img[ni][nj]) match++;
+                        if (img[ni][nj] > 0) match++;
                     }
                 }
             }
@@ -415,10 +417,10 @@ const dilation = (img, w, h, k) => operationBinary(img, w, h, k, "erosion");
 const erosion = (img, w, h, k) => operationBinary(img, w, h, k, "dilation");
 const opening = (img, w, h, k) => erosion(dilation(img, w, h, k), w, h, k);
 const closing = (img, w, h, k) => dilation(erosion(img, w, h, k), w, h, k);
-const complement = (img) => img.map((row) => row.map((pixel) => 1 - pixel));
-const external = (img, w, h, k) => composition(dilation(img, w, h, k), img, w, h, subtract);
-const internal = (img, w, h, k) => composition(img, erosion(img, w, h, k), w, h, subtract);
-const gradient = (img, w, h, k) => composition(dilation(img, w, h, k), erosion(img, w, h, k), w, h, subtract);
+const complement = (img) => img.map((row) => row.map((pixel) => (pixel === 0 ? 1 : 0)));
+const external = (img, w, h, k) => composition(erosion(img, w, h, k), img, w, h, subtract);
+const internal = (img, w, h, k) => composition(img, dilation(img, w, h, k), w, h, subtract);
+const gradient = (img, w, h, k) => composition(erosion(img, w, h, k), dilation(img, w, h, k), w, h, subtract);
 const thinning = (img, w, h, k) => composition(img, gradient(img, w, h, k), w, h, subtract);
 
 function applyGrayNeighborhood(img, kernel, op) {
@@ -482,9 +484,22 @@ const operators = {
 };
 
 function applyOperatorBySelection() {
-    if (!originalImage) return;
+    if (!originalImage) {
+        statusText.textContent = "Carregue uma imagem antes de aplicar o operador.";
+        return;
+    }
 
     const value = filterSelector.value;
+
+    if (!processedImage) {
+        processedImage = {
+            type: originalImage.type,
+            mode: originalImage.mode,
+            width: originalImage.width,
+            height: originalImage.height,
+            data: originalImage.data.map((row) => row.slice())
+        };
+    }
 
     processedImage.type = originalImage.type;
     processedImage.mode = originalImage.mode;
@@ -531,56 +546,17 @@ function downloadImage(img) {
     URL.revokeObjectURL(url);
 }
 
-async function loadSelectedImage() {
-    const path = imagesPath[imgSelector.value];
-    statusText.textContent = `Carregando ${path}...`;
-
-    const response = await fetch(path);
-    const text = await response.text();
-    originalImage = parsePortableImage(text);
-    processedImage = {
-        type: originalImage.type,
-        mode: originalImage.mode,
-        width: originalImage.width,
-        height: originalImage.height,
-        data: originalImage.data.map((row) => row.slice())
-    };
-
-    resetLoupesCenter();
-    syncView();
-    statusText.textContent = "Imagem carregada. Selecione um operador.";
-}
-
 async function loadUploadedImage(file) {
     const text = await file.text();
     originalImage = parsePortableImage(text);
-    processedImage = {
-        type: originalImage.type,
-        mode: originalImage.mode,
-        width: originalImage.width,
-        height: originalImage.height,
-        data: originalImage.data.map((row) => row.slice())
-    };
+    processedImage = null;
 
     filterSelector.value = "0";
     currentOperator = null;
     resetLoupesCenter();
     syncView();
-    statusText.textContent = `Upload concluido: ${file.name}. Selecione um operador.`;
+    statusText.textContent = `Upload concluido: ${file.name}. Selecione um operador e clique em Aplicar.`;
 }
-
-function initialize() {
-    loadSelectedImage().catch((error) => {
-        statusText.textContent = `Erro ao carregar imagem: ${error.message}`;
-    });
-}
-
-imgSelector.addEventListener("change", () => {
-    uploadInput.value = "";
-    loadSelectedImage().catch((error) => {
-        statusText.textContent = `Erro ao carregar imagem: ${error.message}`;
-    });
-});
 
 uploadInput.addEventListener("change", () => {
     const file = uploadInput.files && uploadInput.files[0];
@@ -591,36 +567,19 @@ uploadInput.addEventListener("change", () => {
     });
 });
 
-filterSelector.addEventListener("change", applyOperatorBySelection);
+filterSelector.addEventListener("change", () => {
+    statusText.textContent = `Operador selecionado: ${filterSelector.options[filterSelector.selectedIndex].textContent}. Clique em Aplicar para processar.`;
+});
 
-applyAgainBtn.addEventListener("click", () => {
-    if (!processedImage) {
-        statusText.textContent = "Aplique um operador antes de reusar o resultado.";
-        return;
-    }
-
-    originalImage = cloneImage(processedImage);
-    resetLoupesCenter();
-    redrawCanvasesWithMarkers();
+applyBtn.addEventListener("click", () => {
     applyOperatorBySelection();
-    statusText.textContent = "Resultado promovido para imagem de entrada.";
 });
 
 inputMatrix.addEventListener("change", () => {
-    const kernel = getKernel();
-    if (currentOperator) {
-        processedImage.data = currentOperator(originalImage.data, originalImage.width, originalImage.height, kernel);
-        redrawCanvasesWithMarkers();
-        renderLoupes();
+    getKernel();
+    if (originalImage) {
+        statusText.textContent = "Kernel atualizado. Clique em Aplicar para recalcular.";
     }
-});
-
-downloadBtn.addEventListener("click", () => {
-    if (!processedImage) {
-        statusText.textContent = "Nenhum resultado para baixar.";
-        return;
-    }
-    downloadImage(processedImage);
 });
 
 originalCanvas.addEventListener("mousemove", (event) => {
@@ -646,7 +605,7 @@ originalCanvas.addEventListener("click", () => {
 });
 
 processedCanvas.addEventListener("mousemove", (event) => {
-    updateHoverFromMouse(event, processedCanvas, processedImage, (next) => {
+    updateHoverFromMouse(event, processedCanvas, processedImage || originalImage, (next) => {
         processedHover = next;
     });
     redrawCanvasesWithMarkers();
@@ -682,7 +641,7 @@ setupLoupeTableInteraction({
 
 setupLoupeTableInteraction({
     wrap: processedLoupeWrap,
-    getDimensions: () => processedImage,
+    getDimensions: () => processedImage || originalImage,
     getHover: () => processedHover,
     setHover: (value) => {
         processedHover = value;
@@ -692,5 +651,3 @@ setupLoupeTableInteraction({
         processedCenter = value;
     }
 });
-
-initialize();
