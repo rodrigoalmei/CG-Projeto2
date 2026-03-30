@@ -161,11 +161,16 @@
     });
 
     return {
-      setImage(nextImage, resetCenter = true) {
+      setImage(nextImage, resetCenter = true, preferredCenter = null) {
         image = nextImage;
         hover = null;
 
-        if (image && resetCenter) {
+        if (image && preferredCenter) {
+          center = {
+            x: preferredCenter.x,
+            y: preferredCenter.y
+          };
+        } else if (image && resetCenter) {
           center = {
             x: Math.floor(image.width / 2),
             y: Math.floor(image.height / 2)
@@ -181,6 +186,9 @@
       },
       refresh() {
         render();
+      },
+      getCenter() {
+        return { x: center.x, y: center.y };
       }
     };
   }

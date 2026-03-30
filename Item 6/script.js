@@ -139,7 +139,13 @@ function setBaseImage(image, preserveOriginal = false) {
 function setResultImage(image, operationName) {
   resultImage = cloneImage(image);
   resultImage.lastOperation = operationName;
-  drawViewerImage(resultImage, viewers.result, "Imagem transformada");
+  drawViewerImage(
+    resultImage,
+    viewers.result,
+    "Imagem transformada",
+    false,
+    viewers.original.inspector.getCenter()
+  );
   updateSummary();
 }
 
@@ -150,7 +156,7 @@ function updateSummary() {
 
 // Desenha a imagem no canvas e reinicializa a lupa de pixels no centro.
 // O canvas é apenas a superfície de exibição; a transformação é feita nos vetores.
-function drawViewerImage(image, viewer, emptyLabel) {
+function drawViewerImage(image, viewer, emptyLabel, resetCenter = true, preferredCenter = null) {
   if (!image) {
     clearCanvas(viewer.canvas, viewer.context);
     viewer.meta.textContent = emptyLabel;
@@ -177,11 +183,10 @@ function drawViewerImage(image, viewer, emptyLabel) {
     width: image.width,
     height: image.height,
     pixels: image.pixels
-  });
+  }, resetCenter, preferredCenter);
 }
 
 // Monta a tabela 15x15 de vizinhança ao redor do pixel selecionado.
-// Isso replica a ideia do projeto-base para facilitar a inspeção do resultado.
 function normalizeValue(value, maxValue) {
   if (maxValue <= 0) return 0;
   return Math.round((value / maxValue) * 255);
@@ -456,7 +461,7 @@ function scale(image, sx, sy) {
 }
 
 // 3. Reflexão
-// Espelha a imagem em torno de um único eixo, exatamente como no projeto-base.
+// Espelha a imagem em torno de um único eixo.
 function reflection(image, axis = "x") {
   const result = new Uint8ClampedArray(image.width * image.height);
 
@@ -500,7 +505,7 @@ function shear(image, cx, cy) {
 }
 
 // 5. Rotação
-// Usa o mesmo zoomFactor do projeto-base para manter o conteúdo no quadro e bilinear para amostragem.
+// Usa o zoomFactor para manter o conteúdo no quadro e bilinear para amostragem.
 function rotation(image, angle) {
   const radians = angle * (Math.PI / 180);
   const cosine = Math.cos(radians);
@@ -574,7 +579,7 @@ function applyTransformation(type) {
 
   transformedImage.label = `${sourceImage.label} - ${operationName}`;
   setResultImage(transformedImage, operationName);
-  statusText.textContent = `${operationName} aplicada com a mesma lógica matemática do projeto-base em transformações geométricas.`;
+  statusText.textContent = `${operationName} aplicada com a  lógica matemática em transformações geométricas.`;
 }
 
 // Recupera a primeira imagem carregada, descartando a cadeia atual de testes.

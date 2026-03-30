@@ -122,7 +122,7 @@ function clearCanvas(canvas) {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
-// Atualiza o marcador de hover sobreposto ao canvas (estilo do projeto base).
+// Atualiza o marcador de hover sobreposto ao canvas.
 function updateHoverOverlay(markerEl, hoverPoint, dims) {
     if (!markerEl || !hoverPoint || !dims || !dims.width || !dims.height) {
         if (markerEl) markerEl.style.display = "none";
