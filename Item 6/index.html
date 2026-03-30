@@ -12,17 +12,21 @@
     <div class="page-shell">
       <header class="hero">
         <div class="hero-copy">
-          <span class="eyebrow">Projeto da disciplina de Computação Gráfica</span>
+          <span class="eyebrow"
+            >Projeto da disciplina de Computação Gráfica</span
+          >
           <h1>Transformações Geométricas em Imagens</h1>
           <p>
             Aplicação acadêmica em HTML, CSS e JavaScript puro para demonstrar
-            escala, translação, reflexão, cisalhamento e rotação em imagens
-            em níveis de cinza, com processamento manual de pixels.
+            escala, translação, reflexão, cisalhamento e rotação em imagens em
+            níveis de cinza, com processamento manual de pixels.
           </p>
         </div>
         <div class="hero-note">
           <strong>Alunos</strong>
-          <span>Arthur Marques, Rodrigo Almeida, Vitor Jesus e Vitor Raimundo</span>
+          <span
+            >Arthur Marques, Rodrigo Almeida, Vitor Jesus e Vitor Raimundo</span
+          >
         </div>
       </header>
 
@@ -31,7 +35,10 @@
           <section class="panel-card">
             <div class="section-title">
               <h2>Entrada da Imagem</h2>
-              <p>Carregue uma imagem ou use somente as imagens disponibilizadas pelo professor.</p>
+              <p>
+                Carregue uma imagem ou use somente as imagens disponibilizadas
+                pelo professor.
+              </p>
             </div>
 
             <label class="file-picker">
@@ -52,17 +59,26 @@
             </div>
 
             <div class="quick-actions">
-              <button class="secondary-button" id="loadSelectedSample">Carregar exemplo local</button>
-              <button class="secondary-button" id="loadGraySample">lena.pgm</button>
-              <button class="secondary-button" id="loadGrayAltSample">Lenag.pgm</button>
-              <button class="secondary-button" id="loadAirplaneSample">Airplane.pgm</button>
+              <button class="secondary-button" id="loadSelectedSample">
+                Carregar exemplo local
+              </button>
+              <button class="secondary-button" id="loadGraySample">
+                lena.pgm
+              </button>
+              <button class="secondary-button" id="loadGrayAltSample">
+                Lenag.pgm
+              </button>
+              <button class="secondary-button" id="loadAirplaneSample">
+                Airplane.pgm
+              </button>
             </div>
 
             <div class="info-box">
               <strong>Formatos aceitos</strong>
               <p>
-                As imagens disponibilizadas pelo professor estão na pasta local de assets
-                em formato PGM, e o envio manual também está focado nesse mesmo formato.
+                As imagens disponibilizadas pelo professor estão na pasta local
+                de assets em formato PGM, e o envio manual também está focado
+                nesse mesmo formato.
               </p>
             </div>
           </section>
@@ -70,7 +86,9 @@
           <section class="panel-card">
             <div class="section-title">
               <h2>Transformações</h2>
-              <p>Cada operação possui parâmetros próprios e botão independente.</p>
+              <p>
+                Cada operação possui parâmetros próprios e botão independente.
+              </p>
             </div>
 
             <div class="transform-card">
@@ -88,7 +106,9 @@
                   <input type="number" id="scaleY" value="1.2" step="0.1" />
                 </label>
               </div>
-              <button class="primary-button" data-transform="scale">Aplicar Escala</button>
+              <button class="primary-button" data-transform="scale">
+                Aplicar Escala
+              </button>
             </div>
 
             <div class="transform-card">
@@ -106,7 +126,9 @@
                   <input type="number" id="translateY" value="40" step="1" />
                 </label>
               </div>
-              <button class="primary-button" data-transform="translate">Aplicar Translação</button>
+              <button class="primary-button" data-transform="translate">
+                Aplicar Translação
+              </button>
             </div>
 
             <div class="transform-card">
@@ -123,7 +145,9 @@
                   </select>
                 </label>
               </div>
-              <button class="primary-button" data-transform="reflect">Aplicar Reflexão</button>
+              <button class="primary-button" data-transform="reflect">
+                Aplicar Reflexão
+              </button>
             </div>
 
             <div class="transform-card">
@@ -141,7 +165,9 @@
                   <input type="number" id="shearY" value="-0.6" step="0.1" />
                 </label>
               </div>
-              <button class="primary-button" data-transform="shear">Aplicar Cisalhamento</button>
+              <button class="primary-button" data-transform="shear">
+                Aplicar Cisalhamento
+              </button>
             </div>
 
             <div class="transform-card">
@@ -155,7 +181,9 @@
                   <input type="number" id="rotation" value="45" step="1" />
                 </label>
               </div>
-              <button class="primary-button" data-transform="rotate">Aplicar Rotação</button>
+              <button class="primary-button" data-transform="rotate">
+                Aplicar Rotação
+              </button>
             </div>
           </section>
 
@@ -171,10 +199,18 @@
               </label>
             </div>
             <div class="quick-actions stacked">
-              <button class="ghost-button" id="resetControls">Restaurar valores padrão</button>
-              <button class="secondary-button" id="promoteResult">Usar resultado como nova imagem original</button>
-              <button class="ghost-button" id="resetResult">Restaurar imagem original</button>
-              <button class="ghost-button danger" id="clearCanvases">Limpar tudo</button>
+              <button class="ghost-button" id="resetControls">
+                Restaurar valores padrão
+              </button>
+              <button class="secondary-button" id="promoteResult">
+                Usar resultado como nova imagem original
+              </button>
+              <button class="ghost-button" id="resetResult">
+                Restaurar imagem original
+              </button>
+              <button class="ghost-button danger" id="clearCanvases">
+                Limpar tudo
+              </button>
             </div>
           </section>
         </aside>
@@ -186,7 +222,9 @@
                 <h2>Imagem Original</h2>
                 <p>Visualização da imagem de entrada com inspeção de pixels.</p>
               </div>
-              <span class="badge" id="originalMeta">Nenhuma imagem carregada</span>
+              <span class="badge" id="originalMeta"
+                >Nenhuma imagem carregada</span
+              >
             </div>
             <div class="canvas-stage">
               <div class="canvas-frame">
@@ -209,7 +247,9 @@
                 <h2>Imagem Transformada</h2>
                 <p>Resultado calculado.</p>
               </div>
-              <span class="badge" id="resultMeta">Aguardando processamento</span>
+              <span class="badge" id="resultMeta"
+                >Aguardando processamento</span
+              >
             </div>
             <div class="canvas-stage">
               <div class="canvas-frame">
@@ -244,7 +284,8 @@
                 <strong>Critério de amostragem</strong>
                 <span>
                   Escala, translação, reflexão e cisalhamento seguem a lógica
-                  com vizinho mais próximo. A rotação usa interpolação bilinear para reduzir serrilhado.
+                  com vizinho mais próximo. A rotação usa interpolação bilinear
+                  para reduzir serrilhado.
                 </span>
               </div>
               <div class="report-item wide">
@@ -256,8 +297,9 @@
               <div class="report-item wide">
                 <strong>Observação</strong>
                 <span id="statusText">
-                  O canvas é usado apenas como superfície de desenho. Os novos pixels são
-                  calculados manualmente em JavaScript, sem bibliotecas prontas de processamento.
+                  O canvas é usado apenas como superfície de desenho. Os novos
+                  pixels são calculados manualmente em JavaScript, sem
+                  bibliotecas prontas de processamento.
                 </span>
               </div>
             </div>
