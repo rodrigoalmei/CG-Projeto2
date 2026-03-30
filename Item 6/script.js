@@ -139,13 +139,7 @@ function setBaseImage(image, preserveOriginal = false) {
 function setResultImage(image, operationName) {
   resultImage = cloneImage(image);
   resultImage.lastOperation = operationName;
-  drawViewerImage(
-    resultImage,
-    viewers.result,
-    "Imagem transformada",
-    false,
-    viewers.original.inspector.getCenter()
-  );
+  drawViewerImage(resultImage, viewers.result, "Imagem transformada");
   updateSummary();
 }
 
@@ -156,7 +150,7 @@ function updateSummary() {
 
 // Desenha a imagem no canvas e reinicializa a lupa de pixels no centro.
 // O canvas é apenas a superfície de exibição; a transformação é feita nos vetores.
-function drawViewerImage(image, viewer, emptyLabel, resetCenter = true, preferredCenter = null) {
+function drawViewerImage(image, viewer, emptyLabel, resetCenter = true) {
   if (!image) {
     clearCanvas(viewer.canvas, viewer.context);
     viewer.meta.textContent = emptyLabel;
@@ -183,7 +177,7 @@ function drawViewerImage(image, viewer, emptyLabel, resetCenter = true, preferre
     width: image.width,
     height: image.height,
     pixels: image.pixels
-  }, resetCenter, preferredCenter);
+  }, resetCenter);
 }
 
 // Monta a tabela 15x15 de vizinhança ao redor do pixel selecionado.
