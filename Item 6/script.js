@@ -66,10 +66,14 @@ const defaultControlValues = {
   sampleSelect: "lena"
 };
 
+// Cria o objeto-padrão usado pela aplicação para representar uma imagem.
+// Os pixels são mantidos em vetor linear para facilitar o processamento manual.
 function createImageObject(width, height, pixels, mode = "grayscale", label = "Imagem", type = "P2") {
   return { width, height, pixels, mode, label, type };
 }
 
+// Gera uma cópia independente da imagem atual.
+// Isso evita alterar acidentalmente a matriz usada como referência.
 function cloneImage(image) {
   return createImageObject(
     image.width,
@@ -105,6 +109,8 @@ function setPixel(pixels, width, x, y, value) {
   pixels[y * width + x] = value;
 }
 
+// Define a imagem base mostrada à esquerda.
+// O primeiro carregamento também vira o "snapshot" usado para restauração.
 function setBaseImage(image, preserveOriginal = false) {
   baseImage = cloneImage(image);
 
@@ -128,6 +134,8 @@ function updateSummary() {
   currentTransformLabel.textContent = resultImage?.lastOperation || "Nenhuma";
 }
 
+// Desenha a imagem no canvas e reinicializa a lupa de pixels no centro.
+// O canvas é apenas a superfície de exibição; a transformação é feita nos vetores.
 function drawViewerImage(image, viewer, emptyLabel) {
   if (!image) {
     clearCanvas(viewer.canvas, viewer.context);
@@ -163,6 +171,8 @@ function drawViewerImage(image, viewer, emptyLabel) {
   renderPixelInspector(image, viewer);
 }
 
+// Monta a tabela 15x15 de vizinhança ao redor do pixel selecionado.
+// Isso replica a ideia do projeto-base para facilitar a inspeção do resultado.
 function renderPixelInspector(image, viewer) {
   if (!image) {
     viewer.coordLabel.textContent = "Centro: [ - , - ]";
@@ -214,6 +224,7 @@ function renderPixelInspector(image, viewer) {
   viewer.pixelTable.innerHTML = html;
 }
 
+// Posiciona o marcador visual sobre o pixel atualmente destacado pela lupa.
 function updateMarkerPosition(image, viewer, point) {
   if (!image || !point) {
     viewer.marker.style.display = "none";
@@ -233,6 +244,8 @@ function updateMarkerPosition(image, viewer, point) {
   viewer.marker.style.top = `${top - markerHeight / 2}px`;
 }
 
+// Liga eventos de mouse ao canvas para hover e clique.
+// O clique redefine o centro da lupa e o hover atualiza a pré-visualização.
 function attachViewerInteractions(imageGetter, viewer) {
   viewer.canvas.addEventListener("mousemove", (event) => {
     const image = imageGetter();
@@ -276,6 +289,8 @@ function normalizeValue(value, maxValue) {
   return Math.round((value / maxValue) * 255);
 }
 
+// Faz o parse manual de imagens portáteis P1/P2.
+// Não usa bibliotecas prontas.
 function parsePortableImage(arrayBuffer, label) {
   const bytes = new Uint8Array(arrayBuffer);
   const decoder = new TextDecoder("ascii");
@@ -362,6 +377,8 @@ function parsePortableImage(arrayBuffer, label) {
   return createImageObject(width, height, pixels, detectMode(pixels), label, magic === "P1" ? "P1" : "P2");
 }
 
+// Converte imagens comuns carregadas pelo navegador para tons de cinza.
+// A leitura dos pixels é feita via canvas, mas a transformação continua manual.
 function convertBrowserImage(imageElement, label, options = {}) {
   const { forceBinary = false, threshold = 127 } = options;
   const tempCanvas = document.createElement("canvas");
@@ -393,6 +410,8 @@ function convertBrowserImage(imageElement, label, options = {}) {
   );
 }
 
+// Decide qual rotina usar no upload:
+// PGM/PBM passam pelo parser textual; outras imagens passam pela conversão em canvas.
 function readUploadedFile(file) {
   const extension = file.name.split(".").pop().toLowerCase();
 
@@ -418,6 +437,7 @@ function readUploadedFile(file) {
   reader.readAsDataURL(file);
 }
 
+// Carrega uma das imagens disponibilizadas na pasta assets.
 async function loadSample(sampleKey) {
   const sample = sampleAssets[sampleKey];
   if (!sample) return;
@@ -444,6 +464,7 @@ async function loadSample(sampleKey) {
   }
 }
 
+// Reseta o resultado transformado quando uma nova imagem é carregada.
 function loadNewImage(image) {
   setBaseImage(image);
   resultImage = null;
@@ -460,6 +481,8 @@ function getWorkingImage() {
   return useResultAsBaseCheckbox.checked && resultImage ? resultImage : baseImage;
 }
 
+// Vizinho mais próximo.
+// Se o mapeamento cair fora da imagem, retorna fundo preto (0).
 function getNearestPixel(image, x, y, background = 0) {
   const px = Math.round(x);
   const py = Math.round(y);
@@ -470,6 +493,8 @@ function getNearestPixel(image, x, y, background = 0) {
   return image.pixels[py * image.width + px];
 }
 
+// Interpolação bilinear usada somente na rotação.
+// Ela combina os 4 vizinhos mais próximos para reduzir serrilhado no giro.
 function getBilinearPixel(image, x, y, background = 0) {
   if (x < 0 || x >= image.width - 1 || y < 0 || y >= image.height - 1) {
     return background;
@@ -492,6 +517,8 @@ function getBilinearPixel(image, x, y, background = 0) {
   return Math.round(r1 * (1 - dy) + r2 * dy);
 }
 
+// 1. Translação
+// Implementada por mapeamento inverso: cada pixel de destino busca sua origem em (x - dx, y - dy).
 function translation(image, dx, dy) {
   const result = new Uint8ClampedArray(image.width * image.height);
   result.fill(0);
@@ -507,6 +534,8 @@ function translation(image, dx, dy) {
   return createImageObject(image.width, image.height, result, image.mode, image.label, image.type);
 }
 
+// 2. Escala
+// Recalcula o tamanho de saída e usa mapeamento inverso dividindo pelas escalas sx e sy.
 function scale(image, sx, sy) {
   if (sx === 0 || sy === 0) {
     throw new Error("Os fatores de escala não podem ser zero.");
@@ -528,6 +557,8 @@ function scale(image, sx, sy) {
   return createImageObject(newWidth, newHeight, result, image.mode, image.label, image.type);
 }
 
+// 3. Reflexão
+// Espelha a imagem em torno de um único eixo, exatamente como no projeto-base.
 function reflection(image, axis = "x") {
   const result = new Uint8ClampedArray(image.width * image.height);
 
@@ -542,6 +573,8 @@ function reflection(image, axis = "x") {
   return createImageObject(image.width, image.height, result, image.mode, image.label, image.type);
 }
 
+// 4. Cisalhamento
+// O cálculo é feito em torno do centro e usa aritmética modular para produzir o efeito cilíndrico.
 function shear(image, cx, cy) {
   const result = new Uint8ClampedArray(image.width * image.height);
   const halfW = image.width / 2;
@@ -568,6 +601,8 @@ function shear(image, cx, cy) {
   return createImageObject(image.width, image.height, result, image.mode, image.label, image.type);
 }
 
+// 5. Rotação
+// Usa o mesmo zoomFactor do projeto-base para manter o conteúdo no quadro e bilinear para amostragem.
 function rotation(image, angle) {
   const radians = angle * (Math.PI / 180);
   const cosine = Math.cos(radians);
@@ -596,6 +631,7 @@ function rotation(image, angle) {
   return createImageObject(image.width, image.height, result, image.mode, image.label, image.type);
 }
 
+// Centraliza a leitura dos parâmetros da interface e aplica a transformação escolhida.
 function applyTransformation(type) {
   const sourceImage = getWorkingImage();
   if (!sourceImage) return;
@@ -643,6 +679,7 @@ function applyTransformation(type) {
   statusText.textContent = `${operationName} aplicada com a mesma lógica matemática do projeto-base em transformações geométricas.`;
 }
 
+// Recupera a primeira imagem carregada, descartando a cadeia atual de testes.
 function resetToOriginal() {
   if (!originalSnapshot) {
     statusText.textContent = "Ainda não existe uma imagem original para restaurar.";
@@ -657,6 +694,7 @@ function resetToOriginal() {
   updateSummary();
 }
 
+// Promove a imagem transformada atual para virar a nova base de comparação.
 function promoteResultToBase() {
   if (!resultImage) {
     statusText.textContent = "Gere um resultado antes de promovê-lo para imagem original.";
@@ -671,6 +709,7 @@ function promoteResultToBase() {
   updateSummary();
 }
 
+// Limpa toda a interface para começar um novo teste do zero.
 function clearAll() {
   baseImage = null;
   resultImage = null;
@@ -686,6 +725,7 @@ function clearAll() {
   imageInput.value = "";
 }
 
+// Restaura os valores iniciais dos campos de transformação sem recarregar a página.
 function resetControlsToDefault() {
   document.getElementById("scaleX").value = defaultControlValues.scaleX;
   document.getElementById("scaleY").value = defaultControlValues.scaleY;
