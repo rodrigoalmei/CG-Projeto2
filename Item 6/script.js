@@ -7,10 +7,8 @@ const originalMeta = document.getElementById("originalMeta");
 const resultMeta = document.getElementById("resultMeta");
 
 const imageInput = document.getElementById("imageInput");
-const useResultAsBaseCheckbox = document.getElementById("useResultAsBase");
 const resetControlsButton = document.getElementById("resetControls");
 const promoteResultButton = document.getElementById("promoteResult");
-const resetResultButton = document.getElementById("resetResult");
 const clearCanvasesButton = document.getElementById("clearCanvases");
 
 let baseImage = null;
@@ -60,8 +58,7 @@ const defaultControlValues = {
   shearX: 0.5,
   shearY: 0,
   rotation: 45,
-  reflectionAxis: "x",
-  useResultAsBase: false
+  reflectionAxis: "x"
 };
 
 function createImageObject(width, height, pixels, mode = "grayscale", label = "Imagem", type = "P2") {
@@ -111,7 +108,6 @@ function setBaseImage(image, preserveOriginal = false) {
   }
 
   drawViewerImage(baseImage, viewers.original, "Imagem original");
-  updateSummary();
 }
 
 function setResultImage(image, operationName) {
@@ -305,7 +301,7 @@ function getWorkingImage() {
   if (!baseImage) {
     return null;
   }
-  return useResultAsBaseCheckbox.checked && resultImage ? resultImage : baseImage;
+  return baseImage;
 }
 
 function getNearestPixel(image, x, y, background = 0) {
@@ -490,14 +486,6 @@ function applyTransformation(type) {
   setResultImage(transformedImage, operationName);
 }
 
-function resetToOriginal() {
-  if (!originalSnapshot) return;
-
-  setBaseImage(originalSnapshot, true);
-  resultImage = null;
-  drawViewerImage(null, viewers.result, "Aguardando processamento");
-}
-
 function promoteResultToBase() {
   if (!resultImage) return;
 
@@ -527,7 +515,6 @@ function resetControlsToDefault() {
   document.getElementById("shearY").value = defaultControlValues.shearY;
   document.getElementById("rotation").value = defaultControlValues.rotation;
   document.getElementById("reflectionAxis").value = defaultControlValues.reflectionAxis;
-  useResultAsBaseCheckbox.checked = defaultControlValues.useResultAsBase;
 }
 
 document.querySelectorAll("[data-transform]").forEach((button) => {
@@ -545,7 +532,6 @@ imageInput.addEventListener("change", (event) => {
 
 resetControlsButton.addEventListener("click", resetControlsToDefault);
 promoteResultButton.addEventListener("click", promoteResultToBase);
-resetResultButton.addEventListener("click", resetToOriginal);
 clearCanvasesButton.addEventListener("click", clearAll);
 
 clearAll();

@@ -3,17 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Item 6 | Transformacoes Geometricas em Imagens</title>
+    <title>Item 6 | Transformações Geométricas em Imagens</title>
     <link rel="stylesheet" href="../shared/module-nav.css" />
     <link rel="stylesheet" href="../shared/pixel-inspector.css" />
     <link rel="stylesheet" href="style.css" />
   </head>
 
   <body>
-    <nav class="module-nav" aria-label="Navegacao principal do projeto">
-      <a class="module-nav__brand" href="../index.html">Computacao Grafica</a>
+    <nav class="module-nav" aria-label="Navegação principal do projeto">
+      <a class="module-nav__brand" href="../index.html">Computação Gráfica</a>
       <div class="module-nav__links">
-        <a class="module-nav__link" href="../index.html">Inicio</a>
+        <a class="module-nav__link" href="../index.html">Início</a>
         <a class="module-nav__link" href="../Item 1/index.html">Item 1</a>
         <a class="module-nav__link" href="../Item 2/index.html">Item 2</a>
         <a class="module-nav__link" href="../Item 3/index.html">Item 3</a>
@@ -26,12 +26,12 @@
     <div class="page-shell">
       <header class="hero">
         <div class="hero-copy">
-          <span class="eyebrow">Projeto da disciplina de Computacao Grafica</span>
-          <h1>Transformacoes Geometricas em Imagens</h1>
+          <span class="eyebrow">Projeto da disciplina de Computação Gráfica</span>
+          <h1>Transformações Geométricas em Imagens</h1>
           <p>
-            Aplicacao academica em HTML, CSS e JavaScript puro para demonstrar
-            escala, translacao, reflexao, cisalhamento e rotacao em imagens em
-            niveis de cinza, com processamento manual de pixels.
+            Aplicação acadêmica em HTML, CSS e JavaScript puro para demonstrar
+            escala, translação, reflexão, cisalhamento e rotação em imagens em
+            níveis de cinza, com processamento manual de pixels.
           </p>
         </div>
       </header>
@@ -41,7 +41,7 @@
           <section class="panel-card">
             <div class="section-title">
               <h2>Entrada da Imagem</h2>
-              <p>Carregue a imagem que sera usada nas transformacoes.</p>
+              <p>Carregue a imagem que será usada nas transformações.</p>
             </div>
 
             <label class="file-picker">
@@ -52,9 +52,9 @@
 
           <section class="panel-card">
             <div class="section-title">
-              <h2>Transformacoes</h2>
+              <h2>Transformações</h2>
               <p>
-                Cada operacao possui parametros proprios e botao independente.
+                Cada operação possui parâmetros próprios e botão independente.
               </p>
             </div>
 
@@ -80,7 +80,7 @@
 
             <div class="transform-card">
               <div class="transform-header">
-                <h3>Translacao</h3>
+                <h3>Translação</h3>
                 <span>Deslocamento espacial da imagem</span>
               </div>
               <div class="field-grid two-columns">
@@ -94,13 +94,13 @@
                 </label>
               </div>
               <button class="primary-button" data-transform="translate">
-                Aplicar Translacao
+                Aplicar Translação
               </button>
             </div>
 
             <div class="transform-card">
               <div class="transform-header">
-                <h3>Reflexao / Flip</h3>
+                <h3>Reflexão / Flip</h3>
                 <span>Espelhamento em torno dos eixos da imagem</span>
               </div>
               <div class="field-grid">
@@ -113,14 +113,14 @@
                 </label>
               </div>
               <button class="primary-button" data-transform="reflect">
-                Aplicar Reflexao
+                Aplicar Reflexão
               </button>
             </div>
 
             <div class="transform-card">
               <div class="transform-header">
                 <h3>Cisalhamento</h3>
-                <span>Distorcao geometrica por inclinacao</span>
+                <span>Distorção geométrica por inclinação</span>
               </div>
               <div class="field-grid two-columns">
                 <label>
@@ -139,17 +139,17 @@
 
             <div class="transform-card">
               <div class="transform-header">
-                <h3>Rotacao</h3>
+                <h3>Rotação</h3>
                 <span>Giro em torno do centro da imagem</span>
               </div>
               <div class="field-grid">
                 <label>
-                  <span>Angulo em graus</span>
+                  <span>Ângulo em graus</span>
                   <input type="number" id="rotation" value="45" step="1" />
                 </label>
               </div>
               <button class="primary-button" data-transform="rotate">
-                Aplicar Rotacao
+                Aplicar Rotação
               </button>
             </div>
           </section>
@@ -157,23 +157,14 @@
           <section class="panel-card">
             <div class="section-title">
               <h2>Controles Gerais</h2>
-              <p>Organizacao para apresentacao e comparacao dos resultados.</p>
-            </div>
-            <div class="toggle-line">
-              <label class="checkbox">
-                <input type="checkbox" id="useResultAsBase" />
-                <span>Aplicar a transformacao sobre o resultado atual</span>
-              </label>
+              <p>Organização para apresentação e comparação dos resultados.</p>
             </div>
             <div class="quick-actions stacked">
               <button class="ghost-button" id="resetControls">
-                Restaurar valores padrao
+                Restaurar valores padrão
               </button>
               <button class="secondary-button" id="promoteResult">
                 Usar resultado como nova imagem original
-              </button>
-              <button class="ghost-button" id="resetResult">
-                Restaurar imagem original
               </button>
               <button class="ghost-button danger" id="clearCanvases">
                 Limpar tudo
@@ -187,7 +178,7 @@
             <div class="canvas-header">
               <div>
                 <h2>Imagem Original</h2>
-                <p>Visualizacao da imagem de entrada com inspecao de pixels.</p>
+                <p>Visualização da imagem de entrada com inspeção de pixels.</p>
               </div>
               <span class="badge" id="originalMeta">Nenhuma imagem carregada</span>
             </div>
@@ -228,7 +219,6 @@
               <div class="pixel-table-shell" id="resultPixelTable"></div>
             </div>
           </section>
-
         </section>
       </main>
     </div>
