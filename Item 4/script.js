@@ -7,7 +7,6 @@ const equalizeBtn = document.getElementById("equalize-btn");
 const showOriginalHistBtn = document.getElementById("show-original-hist");
 const showProcessedHistBtn = document.getElementById("show-processed-hist");
 const downloadBtn = document.getElementById("download-btn");
-const imgSelector = document.getElementById("img-selector");
 const uploadInput = document.getElementById("upload-input");
 const statusText = document.getElementById("status");
 const originalLoupeWrap = document.getElementById("original-loupe");
@@ -503,8 +502,7 @@ async function loadFromFile(file) {
 
 // Carrega uma imagem de exemplo do seletor.
 async function loadLena() {
-    const key = imgSelector.value;
-    const path = imagesPath[key] || "/assets/lena.pgm";
+    const path = imagesPath.lena || "/assets/lena.pgm";
     statusText.textContent = `Carregando ${path}...`;
     const response = await fetch(path);
     const text = await response.text();
@@ -518,14 +516,6 @@ async function loadLena() {
     clearCanvas(equalizedHistCanvas);
     statusText.textContent = "Imagem original carregada. Clique em Equalizar para gerar a processada.";
 }
-
-// Troca de imagem predefinida.
-imgSelector.addEventListener("change", () => {
-    uploadInput.value = "";
-    loadLena().catch((error) => {
-        statusText.textContent = `Erro ao carregar imagem: ${error.message}`;
-    });
-});
 
 // Upload manual de arquivo PGM.
 uploadInput.addEventListener("change", () => {

@@ -1,3 +1,4 @@
+// Referencias dos controles da interface (upload, seletor, botao e kernel).
 const filterSelector = document.getElementById("input-filter");
 const applyBtn = document.getElementById("apply-btn");
 const uploadInput = document.getElementById("upload-input");
@@ -5,6 +6,7 @@ const statusText = document.getElementById("status");
 const inputMatrix = document.getElementById("input-matrix");
 const inputMatrixValues = document.getElementsByName("array[]");
 
+// Referencias da visualizacao (canvases, lupa e marcador de hover).
 const originalCanvas = document.getElementById("original-img");
 const processedCanvas = document.getElementById("processed-img");
 const originalLoupeWrap = document.getElementById("original-loupe");
@@ -14,6 +16,7 @@ const processedCenterText = document.getElementById("processed-center");
 const originalHoverMarker = document.getElementById("original-hover-marker");
 const processedHoverMarker = document.getElementById("processed-hover-marker");
 
+// Estado principal da pagina: kernel, imagens, hover e centro da lupa.
 let kernelList = [0, 1, 0, 1, 1, 1, 0, 1, 0];
 let originalImage = null;
 let processedImage = null;
@@ -23,6 +26,7 @@ let processedHover = null;
 let originalCenter = { x: 0, y: 0 };
 let processedCenter = { x: 0, y: 0 };
 
+// Le os 9 valores do kernel e impede um elemento estruturante totalmente vazio.
 function getKernel() {
     for (let i = 0; i < 9; i += 1) {
         kernelList[i] = parseInt(inputMatrixValues[i].value, 10) === 1 ? 1 : 0;
@@ -37,6 +41,7 @@ function getKernel() {
     return kernelList;
 }
 
+// Parse de imagem PBM(P1) / PGM(P2) para matriz 2D numerica.
 function parsePortableImage(text) {
     const lines = text.trim().split("\n");
 
@@ -91,6 +96,7 @@ function parsePortableImage(text) {
     };
 }
 
+// Cria copia profunda da imagem para evitar mutacao acidental.
 function cloneImage(img) {
     return {
         type: img.type,
@@ -101,6 +107,7 @@ function cloneImage(img) {
     };
 }
 
+// Desenha imagem no canvas (binaria mapeada para branco/preto).
 function drawImage(canvas, img) {
     const ctx = canvas.getContext("2d");
     canvas.width = img.width;
@@ -123,6 +130,7 @@ function drawImage(canvas, img) {
     ctx.putImageData(imageData, 0, 0);
 }
 
+// Atualiza o marcador de hover sobreposto.
 function updateHoverOverlay(markerEl, hoverPoint, dims) {
     if (!markerEl || !hoverPoint || !dims || !dims.width || !dims.height) {
         if (markerEl) markerEl.style.display = "none";
@@ -139,6 +147,7 @@ function updateHoverOverlay(markerEl, hoverPoint, dims) {
     markerEl.style.height = `${heightPercent}%`;
 }
 
+// Redesenha os dois canvases e sincroniza os marcadores de hover.
 function redrawCanvasesWithMarkers() {
     if (!originalImage) return;
 
@@ -159,10 +168,12 @@ function redrawCanvasesWithMarkers() {
     updateHoverOverlay(processedHoverMarker, processedHover, processedImage || originalImage);
 }
 
+// Utilitario de limite para coordenadas.
 function clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
 }
 
+// Centro inicial da lupa para a imagem atual.
 function getImageCenter(img) {
     if (!img) return { x: 0, y: 0 };
     return {
@@ -171,6 +182,7 @@ function getImageCenter(img) {
     };
 }
 
+// Le o valor de pixel para a tabela da lupa.
 function getPixelForLoupe(img, x, y, fallbackZero) {
     if (!img) {
         return fallbackZero ? 0 : "-";
@@ -181,6 +193,7 @@ function getPixelForLoupe(img, x, y, fallbackZero) {
     return img.data[y][x];
 }
 
+// Renderiza a tabela 15x15 da lupa ao redor do centro selecionado.
 function renderLoupe({ wrap, centerLabel, img, center, hover, width, height, fallbackZero = false }) {
     centerLabel.textContent = `Centro: [${center.x}, ${center.y}]`;
 
@@ -237,6 +250,7 @@ function renderLoupe({ wrap, centerLabel, img, center, hover, width, height, fal
     wrap.innerHTML = html;
 }
 
+// Atualiza as duas lupas (original e processada) com centro e hover atuais.
 function renderLoupes() {
     if (!originalImage) {
         originalLoupeWrap.innerHTML = "";
@@ -277,6 +291,7 @@ function renderLoupes() {
     });
 }
 
+// Converte coordenada de mouse (tela) para coordenada de pixel da imagem.
 function updateHoverFromMouse(event, canvas, dimensions, setHover) {
     if (!dimensions || !dimensions.width || !dimensions.height) {
         setHover(null);
@@ -296,12 +311,14 @@ function updateHoverFromMouse(event, canvas, dimensions, setHover) {
     }
 }
 
+// Compara pontos para evitar re-render desnecessario.
 function samePoint(a, b) {
     if (!a && !b) return true;
     if (!a || !b) return false;
     return a.x === b.x && a.y === b.y;
 }
 
+// Habilita interacao da lupa pela tabela (hover e clique para fixar centro).
 function setupLoupeTableInteraction({ wrap, getDimensions, getHover, setHover, getCenter, setCenter }) {
     wrap.addEventListener("mousemove", (event) => {
         const cell = event.target.closest("td[data-x][data-y]");
@@ -353,12 +370,14 @@ function setupLoupeTableInteraction({ wrap, getDimensions, getHover, setHover, g
     });
 }
 
+// Atualiza toda a visualizacao (imagem + lupa).
 function syncView() {
     if (!originalImage) return;
     redrawCanvasesWithMarkers();
     renderLoupes();
 }
 
+// Reseta estados da lupa ao trocar imagem.
 function resetLoupesCenter() {
     originalCenter = getImageCenter(originalImage);
     processedCenter = getImageCenter(processedImage || originalImage);
@@ -366,6 +385,7 @@ function resetLoupesCenter() {
     processedHover = null;
 }
 
+// Motor base de morfologia binaria (erosao/dilatacao via vizinhanca 3x3).
 function operationBinary(img, width, height, kernel, operate = "erosion") {
     const result = Array.from({ length: height }, () => Array(width).fill(0));
     const kernelSum = kernel.reduce((a, b) => a + b, 0);
@@ -398,6 +418,7 @@ function operationBinary(img, width, height, kernel, operate = "erosion") {
     return result;
 }
 
+// Composicao pixel a pixel entre duas matrizes.
 function composition(a, b, width, height, operator) {
     const out = [];
     for (let i = 0; i < height; i++) {
@@ -409,10 +430,12 @@ function composition(a, b, width, height, operator) {
     return out;
 }
 
+// Subtracao truncada para manter resultados >= 0.
 function subtract(a, b) {
     return Math.max(0, a - b);
 }
 
+// Operadores binarios disponiveis no seletor.
 const dilation = (img, w, h, k) => operationBinary(img, w, h, k, "erosion");
 const erosion = (img, w, h, k) => operationBinary(img, w, h, k, "dilation");
 const opening = (img, w, h, k) => erosion(dilation(img, w, h, k), w, h, k);
@@ -423,6 +446,7 @@ const internal = (img, w, h, k) => composition(img, dilation(img, w, h, k), w, h
 const gradient = (img, w, h, k) => composition(erosion(img, w, h, k), dilation(img, w, h, k), w, h, subtract);
 const thinning = (img, w, h, k) => composition(img, gradient(img, w, h, k), w, h, subtract);
 
+// Motor base de morfologia em tons de cinza (minimo/maximo local).
 function applyGrayNeighborhood(img, kernel, op) {
     const result = Array.from({ length: img.height }, () => Array(img.width).fill(0));
 
@@ -456,6 +480,7 @@ function applyGrayNeighborhood(img, kernel, op) {
     return result;
 }
 
+// Operadores em tons de cinza disponiveis no seletor.
 const erosionGray = (img, w, h, k) => applyGrayNeighborhood({ data: img, width: w, height: h }, k, "erosion");
 const dilationGray = (img, w, h, k) => applyGrayNeighborhood({ data: img, width: w, height: h }, k, "dilation");
 const openingGray = (img, w, h, k) => dilationGray(erosionGray(img, w, h, k), w, h, k);
@@ -464,6 +489,7 @@ const gradientGray = (img, w, h, k) => composition(dilationGray(img, w, h, k), e
 const topHat = (img, w, h, k) => composition(img, openingGray(img, w, h, k), w, h, subtract);
 const bottomHat = (img, w, h, k) => composition(closingGray(img, w, h, k), img, w, h, subtract);
 
+// Roteamento de id do seletor para funcao de operacao.
 const operators = {
     1: complement,
     2: erosion,
@@ -483,6 +509,7 @@ const operators = {
     16: bottomHat
 };
 
+// Executa a operacao escolhida e atualiza a imagem processada.
 function applyOperatorBySelection() {
     if (!originalImage) {
         statusText.textContent = "Carregue uma imagem antes de aplicar o operador.";
@@ -519,6 +546,7 @@ function applyOperatorBySelection() {
     statusText.textContent = `Operador aplicado: ${filterSelector.options[filterSelector.selectedIndex].textContent}.`;
 }
 
+// Converte matriz de volta para texto PBM/PGM.
 function imageToText(img) {
     let text = `${img.type}\n${img.width} ${img.height}\n`;
 
@@ -534,6 +562,7 @@ function imageToText(img) {
     return text;
 }
 
+// Helper de download (mantido para extensao futura da interface).
 function downloadImage(img) {
     const blob = new Blob([imageToText(img)], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
@@ -546,6 +575,7 @@ function downloadImage(img) {
     URL.revokeObjectURL(url);
 }
 
+// Carrega imagem enviada via upload e reinicializa estado de processamento.
 async function loadUploadedImage(file) {
     const text = await file.text();
     originalImage = parsePortableImage(text);
@@ -558,6 +588,7 @@ async function loadUploadedImage(file) {
     statusText.textContent = `Upload concluido: ${file.name}. Selecione um operador e clique em Aplicar.`;
 }
 
+// Eventos da interface (upload, selecao de operacao, aplicar e interacoes de lupa).
 uploadInput.addEventListener("change", () => {
     const file = uploadInput.files && uploadInput.files[0];
     if (!file) return;
