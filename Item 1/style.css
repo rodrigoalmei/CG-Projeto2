@@ -234,11 +234,15 @@ h1 {
 }
 
 .card canvas {
-    width: 100%;
-    height: auto;
+    display: block;
+    margin: 0 auto;
     border: 1px solid var(--line);
     border-radius: 8px;
-    background: #f9f9f9;
+    background: #eaeaea;
+    max-width: 320px;
+    max-height: 320px;
+    width: auto;
+    height: auto;
 }
 
 .info-text {
@@ -251,6 +255,7 @@ h1 {
 
 /* RESPONSIVE */
 @media (max-width: 768px) {
+
     .grid,
     .grid-3 {
         grid-template-columns: 1fr;

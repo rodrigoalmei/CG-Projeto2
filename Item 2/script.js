@@ -1,3 +1,7 @@
+
+// =========================
+// [SEÇÃO 1] VARIÁVEIS E ELEMENTOS DOM
+// =========================
 const childCanvas = document.getElementById("child-canvas");
 const adultCanvas = document.getElementById("adult-canvas");
 const morphCanvas = document.getElementById("morph-canvas");
@@ -34,11 +38,26 @@ let pointsAdult = [];
 let triangles = [];
 
 let isMarking = false;
-
 let isPlaying = false;
 let animationId = null;
 let previousAnimationTime = 0;
 let isProcessingDoneMarking = false;
+
+// =========================
+// [SEÇÃO 2] FUNÇÕES DE UTILIDADE GERAL
+// =========================
+// =========================
+// [SEÇÃO 3] FUNÇÕES DE LEITURA E CONVERSÃO DE IMAGEM
+// =========================
+// =========================
+// [SEÇÃO 4] FUNÇÕES DE DESENHO E VISUALIZAÇÃO
+// =========================
+// =========================
+// [SEÇÃO 5] FUNÇÕES DE TRIANGULAÇÃO E MORPHING
+// =========================
+// =========================
+// [SEÇÃO 6] FUNÇÕES DE CONTROLE DE INTERAÇÃO E EVENTOS
+// =========================
 
 function createImageObject(width, height, data) {
     return { width, height, data };
@@ -57,6 +76,8 @@ function normalizeValue(value, maxValue) {
     return Math.round((value / maxValue) * 255);
 }
 
+// --- Função: parsePGM ---
+// Lê arquivo PGM (P2/P5) e retorna objeto de imagem normalizado para 0..255
 function parsePGM(arrayBuffer) {
     const bytes = new Uint8Array(arrayBuffer);
     let cursor = 0;
@@ -132,6 +153,8 @@ function parsePGM(arrayBuffer) {
     return createImageObject(width, height, data);
 }
 
+// --- Função: browserImageToGrayscale ---
+// Converte imagem comum (PNG/JPG) para escala de cinza
 function browserImageToGrayscale(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -164,6 +187,8 @@ function browserImageToGrayscale(file) {
     });
 }
 
+// --- Função: loadImageFromFile ---
+// Carrega arquivo (PGM ou imagem comum) e retorna objeto de imagem
 async function loadImageFromFile(file) {
     const name = file.name.toLowerCase();
     if (name.endsWith(".pgm")) {
@@ -173,6 +198,8 @@ async function loadImageFromFile(file) {
     return browserImageToGrayscale(file);
 }
 
+// --- Função: resizeImageNearest ---
+// Redimensiona imagem usando vizinho mais próximo
 function resizeImageNearest(image, newWidth, newHeight) {
     if (image.width === newWidth && image.height === newHeight) {
         return cloneImage(image);
@@ -190,6 +217,8 @@ function resizeImageNearest(image, newWidth, newHeight) {
     return createImageObject(newWidth, newHeight, resized);
 }
 
+// --- Função: imageToImageData ---
+// Converte objeto de imagem para ImageData (para desenhar no canvas)
 function imageToImageData(image) {
     const imageData = new ImageData(image.width, image.height);
     for (let i = 0; i < image.data.length; i += 1) {
@@ -202,12 +231,16 @@ function imageToImageData(image) {
     return imageData;
 }
 
+// --- Função: drawBaseImage ---
+// Desenha imagem base no canvas
 function drawBaseImage(ctx, canvas, image) {
     canvas.width = image.width;
     canvas.height = image.height;
     ctx.putImageData(imageToImageData(image), 0, 0);
 }
 
+// --- Função: drawPoints ---
+// Desenha pontos de controle no canvas
 function drawPoints(ctx, points, color) {
     ctx.save();
     for (let i = 0; i < points.length; i += 1) {
@@ -229,6 +262,8 @@ function drawPoints(ctx, points, color) {
     ctx.restore();
 }
 
+// --- Função: drawTriangulation ---
+// Desenha triangulação de Delaunay no canvas
 function drawTriangulation(ctx, points, triangles) {
     if (!triangles || triangles.length === 0) return;
 
@@ -252,7 +287,10 @@ function drawTriangulation(ctx, points, triangles) {
     ctx.restore();
 }
 
-// Triangulação de Delaunay — algoritmo Bowyer-Watson, sem biblioteca externa.
+// === [SEÇÃO: TRIANGULAÇÃO E MORPHING] ===
+
+// --- Função: triangulateDelaunay ---
+// Calcula triangulação de Delaunay (Bowyer-Watson)
 function triangulateDelaunay(points) {
     if (points.length < 3) return [];
 
@@ -357,6 +395,8 @@ function triangulateDelaunay(points) {
     return result;
 }
 
+// --- Função: barycentric ---
+// Calcula coordenadas baricêntricas de ponto em triângulo
 function barycentric(px, py, a, b, c) {
     const denom = (b.y - c.y) * (a.x - c.x) + (c.x - b.x) * (a.y - c.y);
     if (Math.abs(denom) < 1e-8) return null;
@@ -368,12 +408,16 @@ function barycentric(px, py, a, b, c) {
     return [w1, w2, w3];
 }
 
+// --- Função: sampleNearest ---
+// Amostra valor de pixel mais próximo
 function sampleNearest(image, x, y) {
     const sx = clamp(Math.round(x), 0, image.width - 1);
     const sy = clamp(Math.round(y), 0, image.height - 1);
     return image.data[sy * image.width + sx];
 }
 
+// --- Função: lerpPoint ---
+// Interpola ponto entre a e b por t
 function lerpPoint(a, b, t) {
     return {
         x: (1 - t) * a.x + t * b.x,
@@ -381,6 +425,9 @@ function lerpPoint(a, b, t) {
     };
 }
 
+// === [FUNÇÃO PRINCIPAL DE MORPHING] ===
+// --- Função: morphAtTime ---
+// Calcula imagem morfada para t ∈ [0,1] usando blend e deformação por triangulação
 function morphAtTime(t) {
     if (!imageChild || !imageAdult) {
         return null;
@@ -453,6 +500,8 @@ function morphAtTime(t) {
     return createImageObject(width, height, output);
 }
 
+// --- Função: drawMorphImage ---
+// Desenha imagem morfada atual no canvas
 function drawMorphImage() {
     const t = Number(timeSlider.value);
     timeValue.value = t.toFixed(2);
@@ -473,6 +522,8 @@ function drawMorphImage() {
     statusText.textContent = `Quadro gerado para t=${t.toFixed(2)}.`;
 }
 
+// --- Função: redrawInputCanvases ---
+// Redesenha imagens de entrada e pontos/triângulos
 function redrawInputCanvases() {
     if (imageChild) {
         drawBaseImage(childCtx, childCanvas, imageChild);
@@ -487,9 +538,8 @@ function redrawInputCanvases() {
     }
 }
 
-// ALTERADO: sem dependência de isMarking/currentMarkingImage.
-// Habilita desfazer individualmente por lado e finalizar quando ambos têm
-// pelo menos 3 pontos e a mesma quantidade.
+// --- Função: updateMarkingButtonsState ---
+// Atualiza estado dos botões de marcação
 function updateMarkingButtonsState() {
     if (undoChildBtn) undoChildBtn.disabled = !isMarking || pointsChild.length === 0;
     if (undoAdultBtn) undoAdultBtn.disabled = !isMarking || pointsAdult.length === 0;
@@ -503,8 +553,8 @@ function updateMarkingButtonsState() {
     doneMarkingBtn.disabled = !canFinish;
 }
 
-// ALTERADO: apenas entra no modo de marcação livre, sem fase.
-// Limpa ambos os arrays e libera cliques nos dois canvas.
+// --- Função: startMarking ---
+// Inicia modo de marcação de pontos
 function startMarking() {
     if (!imageChild || !imageAdult) {
         statusText.textContent = "Carregue ambas as imagens antes de iniciar a marcacao.";
@@ -528,8 +578,8 @@ function startMarking() {
     updateMarkingButtonsState();
 }
 
-// ALTERADO: valida só se ambos têm >= 3 pontos e mesma quantidade.
-// Remove toda a lógica de fase (child → adult).
+// --- Função: doneMarking ---
+// Finaliza marcação de pontos, calcula triangulação e ativa morphing
 function doneMarking() {
     if (isProcessingDoneMarking) return;
     isProcessingDoneMarking = true;
@@ -593,7 +643,8 @@ function doneMarking() {
     isProcessingDoneMarking = false;
 }
 
-// ALTERADO: desfaz o último ponto do lado especificado independentemente.
+// --- Função: undoLastPoint ---
+// Desfaz último ponto do lado especificado
 function undoLastPoint(side) {
     if (!isMarking) {
         statusText.textContent = "Inicie a marcacao para desfazer pontos.";
@@ -614,6 +665,8 @@ function undoLastPoint(side) {
     updateMarkingButtonsState();
 }
 
+// --- Função: getCanvasRelativePosition ---
+// Converte coordenada do mouse para posição relativa ao canvas
 function getCanvasRelativePosition(event, canvas) {
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
@@ -624,8 +677,8 @@ function getCanvasRelativePosition(event, canvas) {
     };
 }
 
-// ALTERADO: ambos os canvas ficam ativos ao mesmo tempo durante isMarking,
-// sem verificar currentMarkingImage.
+// --- Função: setupCanvasClickListener ---
+// Adiciona listener de clique para marcação de pontos nos canvas
 function setupCanvasClickListener(canvas, isChildImage) {
     canvas.addEventListener("click", (event) => {
         if (!isMarking) return;
@@ -650,6 +703,8 @@ function setupCanvasClickListener(canvas, isChildImage) {
     });
 }
 
+// --- Função: stopAnimation ---
+// Para animação de morphing
 function stopAnimation() {
     if (animationId) {
         cancelAnimationFrame(animationId);
@@ -659,6 +714,8 @@ function stopAnimation() {
     playBtn.textContent = "Play";
 }
 
+// --- Função: animate ---
+// Loop de animação para morphing automático
 function animate(timestamp) {
     if (!isPlaying) return;
 
@@ -686,6 +743,8 @@ function animate(timestamp) {
     }
 }
 
+// --- Função: togglePlay ---
+// Inicia/pausa animação de morphing
 function togglePlay() {
     if (!imageChild || !imageAdult) {
         return;
@@ -707,6 +766,10 @@ function togglePlay() {
     animationId = requestAnimationFrame(animate);
 }
 
+// === [SEÇÃO: HANDLERS DE UPLOAD E EVENTOS] ===
+
+// --- Função: handleChildUpload ---
+// Handler para upload da imagem da criança
 async function handleChildUpload() {
     const file = fileChild.files[0];
     if (!file) return;
@@ -732,6 +795,8 @@ async function handleChildUpload() {
     }
 }
 
+// --- Função: handleAdultUpload ---
+// Handler para upload da imagem do adulto
 async function handleAdultUpload() {
     const file = fileAdult.files[0];
     if (!file) return;

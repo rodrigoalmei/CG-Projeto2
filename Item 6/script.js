@@ -664,4 +664,3 @@ clearCanvasesButton.addEventListener("click", clearAll);
 
 clearAll();
 resetControlsToDefault();
-loadSample("lena");

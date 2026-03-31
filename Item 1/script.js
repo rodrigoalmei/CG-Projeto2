@@ -127,7 +127,7 @@ function parsePGM(arrayBuffer) {
     const width = readNumber();
     const height = readNumber();
     const maxval = readNumber();
-    
+
     skipWhitespaceAndComments();
 
     const data = [];
@@ -326,7 +326,16 @@ function applyOperation(matrixA, matrixB, w, h, operatorFn, doNormalize = true) 
 function drawMatrixToCanvas(canvas, matrix, w, h) {
     if (!canvas || !matrix || matrix.length === 0) return;
 
+    // Limpa o canvas e ajusta o tamanho
+    canvas.width = w;
+    canvas.height = h;
     const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, w, h);
+
+    // Fundo cinza claro para facilitar visualização de imagens pequenas
+    ctx.fillStyle = '#eaeaea';
+    ctx.fillRect(0, 0, w, h);
+
     const imageData = ctx.createImageData(w, h);
     const data = imageData.data;
 
@@ -403,10 +412,12 @@ filterUpload.addEventListener('change', async (e) => {
     try {
         const arrayBuffer = await file.arrayBuffer();
         filterImageState = parsePGM(arrayBuffer);
-        drawMatrixToCanvas(filterOriginalCanvas, filterImageState.data, filterImageState.w, filterImageState.h);
-        filterOriginalInfo.textContent = `${filterImageState.w}x${filterImageState.h}px`;
+        // Primeiro ajusta o tamanho dos canvases
         filterProcessedCanvas.width = filterOriginalCanvas.width = filterImageState.w;
         filterProcessedCanvas.height = filterOriginalCanvas.height = filterImageState.h;
+        // Depois desenha a imagem
+        drawMatrixToCanvas(filterOriginalCanvas, filterImageState.data, filterImageState.w, filterImageState.h);
+        filterOriginalInfo.textContent = `${filterImageState.w}x${filterImageState.h}px`;
     } catch (error) {
         alert('Erro ao ler imagem: ' + error.message);
     }
@@ -562,9 +573,23 @@ applyOperationBtn.addEventListener('click', () => {
         return alert('Carregue as duas imagens primeiro');
     }
 
-    if (imageAState.w !== imageBState.w || imageAState.h !== imageBState.h) {
-        return alert('As imagens precisam ter as mesmas dimensoes');
+    // Recorta ambas para o menor tamanho comum
+    const minW = Math.min(imageAState.w, imageBState.w);
+    const minH = Math.min(imageAState.h, imageBState.h);
+
+    function cropMatrix(matrix, w, h, newW, newH) {
+        const cropped = [];
+        for (let i = 0; i < newH; i++) {
+            cropped[i] = [];
+            for (let j = 0; j < newW; j++) {
+                cropped[i][j] = matrix[i][j];
+            }
+        }
+        return cropped;
     }
+
+    const matrixA = cropMatrix(imageAState.data, imageAState.w, imageAState.h, minW, minH);
+    const matrixB = cropMatrix(imageBState.data, imageBState.w, imageBState.h, minW, minH);
 
     const operationId = parseInt(operationSelect.value);
     const doNormalize = operationNormalize.checked;
@@ -575,19 +600,19 @@ applyOperationBtn.addEventListener('click', () => {
 
     setTimeout(() => {
         const result = applyOperation(
-            imageAState.data,
-            imageBState.data,
-            imageAState.w,
-            imageAState.h,
+            matrixA,
+            matrixB,
+            minW,
+            minH,
             operatorFn,
             doNormalize
         );
 
-        drawMatrixToCanvas(resultCanvas, result, imageAState.w, imageAState.h);
+        drawMatrixToCanvas(resultCanvas, result, minW, minH);
         resultInfo.textContent = 'Operacao aplicada';
         applyOperationBtn.disabled = false;
         applyOperationBtn.textContent = 'Combinar';
-    }, 50);
+    }, 10);
 });
 
 downloadOperationBtn.addEventListener('click', () => {
