@@ -4,13 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Item 1 | Filtros e Operacoes entre Imagens</title>
+    <title>Item 1 | Combinação de Imagens</title>
     <link rel="stylesheet" href="../shared/module-nav.css">
+    <link rel="stylesheet" href="../shared/pixel-inspector.css">
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <nav class="module-nav" aria-label="Navegacao principal do projeto">
+    <nav class="module-nav" aria-label="Navegação principal do projeto">
         <a class="module-nav__brand" href="../index.html">Computação Gráfica</a>
         <div class="module-nav__links">
             <a class="module-nav__link" href="../index.html">Início</a>
@@ -24,50 +25,149 @@
     </nav>
     <main class="page">
         <header class="hero">
-            <p class="eyebrow">Computacao Grafica - Projeto 2</p>
-            <h1>Item 1 - Filtros e Operacoes entre Imagens</h1>
+            <p class="eyebrow">Computação Gráfica - Projeto 2</p>
+            <h1>Item 1 - Filtros e Operações entre Imagens</h1>
             <p>
-                Implementacao dos 8 filtros definidos na aula 9, operacoes aritmeticas (soma, subtracao,
-                multiplicacao, divisao) e operadores logicos (or, and, xor) entre duas imagens.
+                Aplicação de filtros espaciais (Média, Mediana, High-Boost, Roberts, Sobel, Prewitt, Gradiente)
+                e operações aritméticas/lógicas entre duas imagens.
             </p>
         </header>
 
-        <!-- Navegacao entre abas -->
-        <div class="tab-navigation">
-            <button class="tab-button active" data-tab="filtros">Filtros</button>
-            <button class="tab-button" data-tab="operacoes">Operacoes entre Imagens</button>
+        <!-- Abas de Navegação -->
+        <div class="tabs-navigation">
+            <button class="tab-button is-active" data-tab="operations">Operações entre Imagens</button>
+            <button class="tab-button" data-tab="filters">Filtros</button>
         </div>
 
-        <!-- TAB: FILTROS -->
-        <section id="filtros-tab" class="tab-content active">
+        <!-- Seção: Operações entre Imagens -->
+        <div id="tab-operations" class="tab-content is-active">
+            <!-- Controles Principais -->
+            <div class="toolbar">
+            <div class="toolbar-group">
+                <label for="img-a-upload">Imagem A (PGM)</label>
+                <input id="img-a-upload" type="file" accept=".pgm,text/plain">
+            </div>
+            <div class="toolbar-group">
+                <label for="img-b-upload">Imagem B (PGM)</label>
+                <input id="img-b-upload" type="file" accept=".pgm,text/plain">
+            </div>
+            <div class="toolbar-group">
+                <label for="operation-select">Operação</label>
+                <select id="operation-select">
+                    <optgroup label="Aritméticas">
+                        <option value="1">Adição (A + B)</option>
+                        <option value="2">Subtração (A - B)</option>
+                        <option value="3">Multiplicação (A * B)</option>
+                        <option value="4">Divisão (A / B)</option>
+                    </optgroup>
+                    <optgroup label="Lógicas">
+                        <option value="5">OR (A | B)</option>
+                        <option value="6">AND (A & B)</option>
+                        <option value="7">XOR (A ^ B)</option>
+                    </optgroup>
+                </select>
+            </div>
+            <div class="toolbar-group">
+                <label class="checkbox-label">
+                    <input id="operation-normalize" type="checkbox" checked>
+                    <span>Normalizar</span>
+                </label>
+            </div>
+            <button id="apply-operation-btn" class="primary-button">Combinar</button>
+            <button id="download-operation-btn" class="ghost-button">Baixar</button>
+        </div>
+
+        <!-- Grid de Imagens -->
+        <div class="grid grid-3">
+            <article class="card">
+                <h2>Imagem A</h2>
+                <div class="canvas-frame">
+                    <canvas id="img-a-canvas" width="256" height="256"></canvas>
+                    <div class="pixel-marker" id="img-a-marker"></div>
+                </div>
+                <div class="pixel-viewer">
+                    <div class="pixel-info-line">
+                        <span>Lupa: Eixo X/Y</span>
+                        <span id="img-a-coord" class="center-label">Centro: [0, 0]</span>
+                    </div>
+                    <div id="img-a-table" class="pixel-table-shell"></div>
+                </div>
+            </article>
+
+            <article class="card">
+                <h2>Imagem B</h2>
+                <div class="canvas-frame">
+                    <canvas id="img-b-canvas" width="256" height="256"></canvas>
+                    <div class="pixel-marker" id="img-b-marker"></div>
+                </div>
+                <div class="pixel-viewer">
+                    <div class="pixel-info-line">
+                        <span>Lupa: Eixo X/Y</span>
+                        <span id="img-b-coord" class="center-label">Centro: [0, 0]</span>
+                    </div>
+                    <div id="img-b-table" class="pixel-table-shell"></div>
+                </div>
+            </article>
+
+            <article class="card">
+                <h2>Resultado da Combinação</h2>
+                <div class="canvas-frame">
+                    <canvas id="result-canvas" width="256" height="256"></canvas>
+                    <div class="pixel-marker" id="result-marker"></div>
+                </div>
+                <div class="pixel-viewer">
+                    <div class="pixel-info-line">
+                        <span>Lupa: Eixo X/Y</span>
+                        <span id="result-coord" class="center-label">Centro: [0, 0]</span>
+                    </div>
+                    <div id="result-table" class="pixel-table-shell"></div>
+                </div>
+            </article>
+        </div>
+        </div>
+
+        <!-- Seção: Filtros -->
+        <div id="tab-filters" class="tab-content">
+            <!-- Controles de Filtros -->
             <div class="toolbar">
                 <div class="toolbar-group">
                     <label for="filter-upload">Upload PGM</label>
                     <input id="filter-upload" type="file" accept=".pgm,text/plain">
                 </div>
                 <div class="toolbar-group">
-                    <label for="filter-select">Selecionar Filtro</label>
+                    <label for="filter-select">Selecione o Filtro</label>
                     <select id="filter-select">
                         <option value="0">Nenhum</option>
-                        <optgroup label="Passa-Baixa">
-                            <option value="1">Media</option>
-                            <option value="2">Mediana</option>
-                            <option value="3">Gaussian Blur</option>
+                        <optgroup label="Filtros Gerais">
+                            <option value="9">Média (Passa-Baixa)</option>
+                            <option value="23">Mediana</option>
+                            <option value="24">High-Boost</option>
                         </optgroup>
-                        <optgroup label="Realce de Imagem">
-                            <option value="4">High-Boost</option>
+                        <optgroup label="Filtros Direcionais: Roberts">
+                            <option value="13">Roberts Eixo X</option>
+                            <option value="14">Roberts Eixo Y</option>
+                            <option value="19">Roberts Magnitude Cruzada (XY)</option>
                         </optgroup>
-                        <optgroup label="Detectores de Borda">
-                            <option value="5">Roberts XY</option>
-                            <option value="6">Sobel XY</option>
-                            <option value="7">Prewitt XY</option>
-                            <option value="8">Gradiente XY</option>
+                        <optgroup label="Filtros Direcionais: Sobel">
+                            <option value="5">Sobel Eixo X</option>
+                            <option value="6">Sobel Eixo Y</option>
+                            <option value="21">Sobel Magnitude Cruzada (XY)</option>
+                        </optgroup>
+                        <optgroup label="Filtros Direcionais: Prewitt">
+                            <option value="7">Prewitt Eixo X</option>
+                            <option value="8">Prewitt Eixo Y</option>
+                            <option value="22">Prewitt Magnitude Cruzada (XY)</option>
+                        </optgroup>
+                        <optgroup label="Filtros Direcionais: Gradiente">
+                            <option value="11">Gradiente Eixo X</option>
+                            <option value="12">Gradiente Eixo Y</option>
+                            <option value="20">Gradiente Magnitude Cruzada (XY)</option>
                         </optgroup>
                     </select>
                 </div>
-                <div id="highboost-control" class="toolbar-group" style="display: none;">
-                    <label for="highboost-factor">Fator A (High-Boost)</label>
-                    <input id="highboost-factor" type="number" value="1.5" step="0.1" min="0.1" max="5">
+                <div class="toolbar-group" id="high-boost-group" style="display: none;">
+                    <label for="high-boost-input">Fator (A)</label>
+                    <input id="high-boost-input" type="number" step="0.1" value="1.5" min="0.1" max="5">
                 </div>
                 <div class="toolbar-group">
                     <label class="checkbox-label">
@@ -75,84 +175,47 @@
                         <span>Normalizar</span>
                     </label>
                 </div>
-                <button id="apply-filter-btn" class="primary-button">Aplicar Filtro</button>
+                <button id="apply-filter-btn" class="primary-button">Aplicar</button>
                 <button id="download-filter-btn" class="ghost-button">Baixar</button>
             </div>
 
-            <div class="grid">
+            <!-- Grid de Imagens para Filtros -->
+            <div class="grid grid-2">
                 <article class="card">
                     <h2>Imagem Original</h2>
-                    <canvas id="filter-original-canvas" width="512" height="512"></canvas>
-                    <p id="filter-original-info" class="info-text">Carregue uma imagem PGM</p>
+                    <div class="canvas-frame">
+                        <canvas id="filter-original-canvas" width="256" height="256"></canvas>
+                        <div class="pixel-marker" id="filter-original-marker"></div>
+                    </div>
+                    <div class="pixel-viewer">
+                        <div class="pixel-info-line">
+                            <span>Lupa: Eixo X/Y</span>
+                            <span id="filter-original-coord" class="center-label">Centro: [0, 0]</span>
+                        </div>
+                        <div id="filter-original-table" class="pixel-table-shell"></div>
+                    </div>
                 </article>
 
                 <article class="card">
                     <h2>Imagem Filtrada</h2>
-                    <canvas id="filter-processed-canvas" width="512" height="512"></canvas>
-                    <p id="filter-processed-info" class="info-text">Aplique um filtro</p>
+                    <div class="canvas-frame">
+                        <canvas id="filter-result-canvas" width="256" height="256"></canvas>
+                        <div class="pixel-marker" id="filter-result-marker"></div>
+                    </div>
+                    <div class="pixel-viewer">
+                        <div class="pixel-info-line">
+                            <span>Lupa: Eixo X/Y</span>
+                            <span id="filter-result-coord" class="center-label">Centro: [0, 0]</span>
+                        </div>
+                        <div id="filter-result-table" class="pixel-table-shell"></div>
+                    </div>
                 </article>
             </div>
-        </section>
-
-        <!-- TAB: OPERACOES -->
-        <section id="operacoes-tab" class="tab-content">
-            <div class="toolbar">
-                <div class="toolbar-group">
-                    <label for="img-a-upload">Imagem A (PGM)</label>
-                    <input id="img-a-upload" type="file" accept=".pgm,text/plain">
-                </div>
-                <div class="toolbar-group">
-                    <label for="img-b-upload">Imagem B (PGM)</label>
-                    <input id="img-b-upload" type="file" accept=".pgm,text/plain">
-                </div>
-                <div class="toolbar-group">
-                    <label for="operation-select">Operacao</label>
-                    <select id="operation-select">
-                        <optgroup label="Aritmeticas">
-                            <option value="1">Adicao (A + B)</option>
-                            <option value="2">Subtracao (A - B)</option>
-                            <option value="3">Multiplicacao (A * B)</option>
-                            <option value="4">Divisao (A / B)</option>
-                        </optgroup>
-                        <optgroup label="Logicas">
-                            <option value="5">OR (A | B)</option>
-                            <option value="6">AND (A & B)</option>
-                            <option value="7">XOR (A ^ B)</option>
-                        </optgroup>
-                    </select>
-                </div>
-                <div class="toolbar-group">
-                    <label class="checkbox-label">
-                        <input id="operation-normalize" type="checkbox" checked>
-                        <span>Normalizar</span>
-                    </label>
-                </div>
-                <button id="apply-operation-btn" class="primary-button">Combinar</button>
-                <button id="download-operation-btn" class="ghost-button">Baixar</button>
-            </div>
-
-            <div class="grid grid-3">
-                <article class="card">
-                    <h2>Imagem A</h2>
-                    <canvas id="img-a-canvas" width="256" height="256"></canvas>
-                    <p id="img-a-info" class="info-text">Carregue imagem A</p>
-                </article>
-
-                <article class="card">
-                    <h2>Imagem B</h2>
-                    <canvas id="img-b-canvas" width="256" height="256"></canvas>
-                    <p id="img-b-info" class="info-text">Carregue imagem B</p>
-                </article>
-
-                <article class="card">
-                    <h2>Resultado</h2>
-                    <canvas id="result-canvas" width="256" height="256"></canvas>
-                    <p id="result-info" class="info-text">Aplique uma operacao</p>
-                </article>
-            </div>
-        </section>
+        </div>
     </main>
 
+    <script src="../shared/pixel-inspector.js"></script>
+    <script src="../shared/filters.js"></script>
     <script src="script.js"></script>
 </body>
 
