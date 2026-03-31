@@ -236,21 +236,21 @@ const inspectors = {
     marker: document.getElementById("img-a-marker"),
     coordLabel: document.getElementById("img-a-coord"),
     tableContainer: document.getElementById("img-a-table"),
-    markerMode: "hover-or-selected",
+    markerMode: "hover",
   }),
   b: window.PixelInspector.create({
     canvas: imgBCanvas,
     marker: document.getElementById("img-b-marker"),
     coordLabel: document.getElementById("img-b-coord"),
     tableContainer: document.getElementById("img-b-table"),
-    markerMode: "hover-or-selected",
+    markerMode: "hover",
   }),
   result: window.PixelInspector.create({
     canvas: resultCanvas,
     marker: document.getElementById("result-marker"),
     coordLabel: document.getElementById("result-coord"),
     tableContainer: document.getElementById("result-table"),
-    markerMode: "hover-or-selected",
+    markerMode: "hover",
   }),
 };
 
@@ -402,14 +402,14 @@ const filterInspectors = {
     marker: document.getElementById("filter-original-marker"),
     coordLabel: document.getElementById("filter-original-coord"),
     tableContainer: document.getElementById("filter-original-table"),
-    markerMode: "hover-or-selected",
+    markerMode: "hover",
   }),
   result: window.PixelInspector.create({
     canvas: filterResultCanvas,
     marker: document.getElementById("filter-result-marker"),
     coordLabel: document.getElementById("filter-result-coord"),
     tableContainer: document.getElementById("filter-result-table"),
-    markerMode: "hover-or-selected",
+    markerMode: "hover",
   }),
 };
 
