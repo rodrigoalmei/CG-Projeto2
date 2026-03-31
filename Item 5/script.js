@@ -438,8 +438,8 @@ function subtract(a, b) {
 // Operadores binarios disponiveis no seletor.
 const dilation = (img, w, h, k) => operationBinary(img, w, h, k, "erosion");
 const erosion = (img, w, h, k) => operationBinary(img, w, h, k, "dilation");
-const opening = (img, w, h, k) => erosion(dilation(img, w, h, k), w, h, k);
-const closing = (img, w, h, k) => dilation(erosion(img, w, h, k), w, h, k);
+const opening = (img, w, h, k) => dilation(erosion(img, w, h, k), w, h, k);
+const closing = (img, w, h, k) => erosion(dilation(img, w, h, k), w, h, k);
 const complement = (img) => img.map((row) => row.map((pixel) => (pixel === 0 ? 1 : 0)));
 const external = (img, w, h, k) => composition(erosion(img, w, h, k), img, w, h, subtract);
 const internal = (img, w, h, k) => composition(img, dilation(img, w, h, k), w, h, subtract);
