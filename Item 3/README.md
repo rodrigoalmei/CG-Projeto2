@@ -1,76 +1,62 @@
-# Item 3 — Transformações de Intensidade
+# Item 3 - Transformacoes de Intensidade
 
-## Visão Geral
+## Visao Geral
 
-O Item 3 do projeto implementa um sistema de **transformações de intensidade** para imagens em tons de cinza (PGM). O usuário pode carregar uma imagem, escolher uma transformação e visualizar tanto a imagem original quanto a transformada, além de inspecionar valores de pixels com uma lupa interativa.
+O Item 3 aplica transformacoes de intensidade em imagens em tons de cinza.
+O usuario pode carregar uma imagem, escolher a operacao desejada, visualizar o resultado em um segundo canvas e inspecionar os pixels nas duas imagens com a lupa compartilhada do projeto.
 
-## Transformações Disponíveis
+## Formatos suportados
 
-- **Negativo:** Inverte os valores de intensidade (255 - valor).
-- **Gamma:** Corrige a intensidade usando a fórmula $s = (r/255)^{1/\gamma} \cdot 255$.
-- **Logarítmica:** Realça tons escuros usando $s = a \cdot c \cdot \log(r+1)$, com $c = 255/\log(1+255)$.
-- **Transferência Geral (Sigmoide):** Realça faixas específicas usando uma função sigmoide.
-- **Faixa Dinâmica:** Redimensiona a faixa de tons para um valor alvo.
-- **Linear:** Aplica transformação linear $s = a \cdot r + b$ (com saturação).
+- `PGM` ASCII (`P2`)
+- `PNG`
+- `JPG` / `JPEG`
+- `BMP`
 
-## Estrutura do Código
+Imagens coloridas enviadas por upload sao convertidas automaticamente para escala de cinza antes da transformacao.
 
-O código está organizado em seções para facilitar a leitura e manutenção:
+## Transformacoes disponiveis
 
-### 1. Variáveis e Elementos DOM
+- `Negativo`: inverte a intensidade de cada pixel.
+- `Gamma`: aplica correcao por potencia usando o parametro `gama`.
+- `Logaritmo`: destaca tons escuros com o parametro `a`.
+- `Transferencia Geral`: usa uma curva sigmoide com os parametros `w` e `a`.
+- `Faixa Dinamica`: remapeia os tons da imagem para um novo valor alvo.
+- `Linear`: aplica a expressao `a * r + b`.
 
-- Referências aos canvas, controles, botões e variáveis de estado.
+## Estrutura do script
 
-### 2. Funções de Utilidade
+O arquivo `script.js` foi organizado em blocos:
 
-- `parsePGM`: Lê arquivos PGM (P2) e converte para objeto de imagem.
-- `drawImage`, `clearCanvas`: Desenham e limpam imagens no canvas.
+1. Estado e elementos da pagina.
+2. Utilidades gerais.
+3. Leitura de imagem.
+4. Desenho e atualizacao de tela.
+5. Transformacoes individuais.
+6. Download.
+7. Eventos.
 
-### 3. Funções de Transformação
+Cada transformacao possui um comentario proprio no formato:
 
-- Cada transformação possui uma função dedicada (`applyNegative`, `applyGamma`, etc.), que aplica a fórmula correspondente a cada pixel.
-- `getTransformedImage`: Função central que aplica a transformação escolhida e atualiza a visualização.
+- `TRANSFORMACAO: NEGATIVO`
+- `TRANSFORMACAO: GAMMA`
+- `TRANSFORMACAO: LOGARITMO`
+- `TRANSFORMACAO: TRANSFERENCIA GERAL`
+- `TRANSFORMACAO: FAIXA DINAMICA`
+- `TRANSFORMACAO: LINEAR`
 
-### 4. UI Dinâmica
+Isso facilita localizar rapidamente cada operacao com `Ctrl+F`.
 
-- O seletor de transformação exibe dinamicamente os parâmetros necessários.
-- O botão de download permite baixar a imagem transformada em formato PGM.
+## Fluxo de uso
 
-### 5. Lupa/Inspeção de Pixels
+1. Carregue uma imagem pelo campo de upload.
+2. Escolha a transformacao desejada.
+3. Ajuste os parametros exibidos para a operacao selecionada.
+4. Clique em `Transformar`.
+5. Inspecione os pixels nas imagens original e transformada.
+6. Clique em `Baixar Transformada (PGM)` se quiser exportar o resultado.
 
-- O usuário pode inspecionar valores de pixels em ambas as imagens (original e transformada) usando uma matriz/lupa interativa.
+## Observacoes tecnicas
 
-## Fluxo de Funcionamento
-
-1. **Upload da Imagem**
-   - O usuário carrega uma imagem PGM.
-   - A imagem é exibida no canvas original e pode ser inspecionada.
-
-2. **Escolha e Aplicação da Transformação**
-   - O usuário seleciona uma transformação e ajusta os parâmetros (se necessário).
-   - Ao clicar em "Transformar", a função correspondente é chamada e a imagem transformada é exibida.
-
-3. **Inspeção de Pixels**
-   - O usuário pode clicar ou passar o mouse sobre a imagem para ver os valores dos pixels em uma matriz 15x15 centrada no ponto selecionado.
-
-4. **Download**
-   - O usuário pode baixar a imagem transformada em formato PGM.
-
-## Pontos Importantes para Explicação
-
-- Cada transformação é implementada de acordo com a fórmula matemática clássica da área de processamento de imagens.
-- O código é modular: cada transformação é uma função separada, facilitando a adição de novas operações.
-- A interface é dinâmica e responsiva, mostrando apenas os parâmetros relevantes para cada transformação.
-- A lupa/matriz permite análise detalhada dos valores de pixels, útil para estudos e depuração.
-
-## Sugestão de Demonstração
-
-1. Carregue uma imagem PGM.
-2. Selecione uma transformação e ajuste os parâmetros.
-3. Clique em "Transformar" e observe o resultado.
-4. Use a lupa para inspecionar valores de pixels antes e depois da transformação.
-5. Baixe a imagem transformada para análise posterior.
-
----
-
-Se precisar explicar detalhes matemáticos, foque nas fórmulas de cada transformação. Se quiser mostrar o fluxo do código, siga as seções acima.
+- O problema principal anterior estava no `script.js`, que tinha blocos duplicados e gerava erro de sintaxe antes da pagina iniciar.
+- O arquivo `shared/pixel-inspector.js` nao estava impedindo o funcionamento do Item 3.
+- A pasta `assets` tambem nao era a causa do erro de upload, porque o upload usa `FileReader` no navegador e nao depende dessa pasta.

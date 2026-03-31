@@ -1,20 +1,18 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Item 3 - Transformações de Intensidade</title>
+    <title>Item 3 - Transformacoes de Intensidade</title>
     <link rel="stylesheet" href="../shared/module-nav.css">
     <link rel="stylesheet" href="../shared/pixel-inspector.css">
     <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
     <nav class="module-nav" aria-label="Navegacao principal do projeto">
-        <a class="module-nav__brand" href="../index.html">Computação Gráfica</a>
+        <a class="module-nav__brand" href="../index.html">Computacao Grafica</a>
         <div class="module-nav__links">
-            <a class="module-nav__link" href="../index.html">Início</a>
+            <a class="module-nav__link" href="../index.html">Inicio</a>
             <a class="module-nav__link" href="../Item 1/index.html">Item 1</a>
             <a class="module-nav__link" href="../Item 2/index.html">Item 2</a>
             <a class="module-nav__link is-active" href="../Item 3/index.html">Item 3</a>
@@ -23,29 +21,33 @@
             <a class="module-nav__link" href="../Item 6/index.html">Item 6</a>
         </div>
     </nav>
+
     <main class="page">
         <header class="hero">
-            <h1>Item 3 - Transformações de Intensidade</h1>
+            <h1>Item 3 - Transformacoes de Intensidade</h1>
             <div class="toolbar">
                 <div class="toolbar-row">
                     <label for="upload">Imagem</label>
-                    <input type="file" id="upload" accept=".pgm,image/x-portable-graymap">
+                    <input type="file" id="upload" accept=".pgm,image/x-portable-graymap,image/png,image/jpeg,image/jpg,image/bmp">
                 </div>
                 <div class="toolbar-row">
-                    <label for="transformSelect">Transformação</label>
+                    <label for="transformSelect">Transformacao</label>
                     <select id="transformSelect">
                         <option value="negative">Negativo</option>
                         <option value="gamma">Gamma</option>
                         <option value="log">Logaritmo</option>
-                        <option value="general">Transferência Geral</option>
-                        <option value="dynamic">Faixa Dinâmica</option>
+                        <option value="general">Transferencia Geral</option>
+                        <option value="dynamic">Faixa Dinamica</option>
                         <option value="linear">Linear</option>
                     </select>
                     <span id="inputs-area"></span>
-                    <button id="applyBtn" onclick="applySelectedTransform()">Transformar</button>
+                    <button id="applyBtn">Transformar</button>
+                    <button id="downloadBtn" class="toolbar-download">Baixar Transformada (PGM)</button>
                 </div>
+                <p id="status" class="status-text" aria-live="polite"></p>
             </div>
         </header>
+
         <section class="grid">
             <article class="card">
                 <h2>Imagem Original</h2>
@@ -61,6 +63,7 @@
                     <div id="original-loupe" class="pixel-table-shell"></div>
                 </div>
             </article>
+
             <article class="card">
                 <h2>Transformada</h2>
                 <div class="canvas-frame">
@@ -77,8 +80,8 @@
             </article>
         </section>
     </main>
+
     <script src="../shared/pixel-inspector.js"></script>
     <script src="script.js"></script>
 </body>
-
 </html>

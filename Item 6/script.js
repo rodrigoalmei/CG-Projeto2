@@ -5,16 +5,8 @@ const resultCtx = resultCanvas.getContext("2d");
 
 const originalMeta = document.getElementById("originalMeta");
 const resultMeta = document.getElementById("resultMeta");
-const imageModeLabel = document.getElementById("imageMode");
-const currentTransformLabel = document.getElementById("currentTransform");
-const statusText = document.getElementById("statusText");
 
 const imageInput = document.getElementById("imageInput");
-const sampleSelect = document.getElementById("sampleSelect");
-const loadSelectedSampleButton = document.getElementById("loadSelectedSample");
-const loadGraySampleButton = document.getElementById("loadGraySample");
-const loadGrayAltSampleButton = document.getElementById("loadGrayAltSample");
-const loadAirplaneSampleButton = document.getElementById("loadAirplaneSample");
 const useResultAsBaseCheckbox = document.getElementById("useResultAsBase");
 const resetControlsButton = document.getElementById("resetControls");
 const promoteResultButton = document.getElementById("promoteResult");
@@ -60,13 +52,6 @@ viewers.result.inspector = window.PixelInspector.create({
   markerMode: "hover"
 });
 
-const sampleAssets = {
-  lena: { label: "lena.pgm", path: "./assets/lena.pgm", kind: "portable" },
-  lenag: { label: "Lenag.pgm", path: "./assets/Lenag.pgm", kind: "portable" },
-  lenasalp: { label: "Lenasalp.pgm", path: "./assets/Lenasalp.pgm", kind: "portable" },
-  airplane: { label: "Airplane.pgm", path: "./assets/Airplane.pgm", kind: "portable" },
-};
-
 const defaultControlValues = {
   scaleX: 1.5,
   scaleY: 1.5,
@@ -76,18 +61,13 @@ const defaultControlValues = {
   shearY: 0,
   rotation: 45,
   reflectionAxis: "x",
-  useResultAsBase: false,
-  sampleSelect: "lena"
+  useResultAsBase: false
 };
 
-// Cria o objeto-padrão usado pela aplicação para representar uma imagem.
-// Os pixels são mantidos em vetor linear para facilitar o processamento manual.
 function createImageObject(width, height, pixels, mode = "grayscale", label = "Imagem", type = "P2") {
   return { width, height, pixels, mode, label, type };
 }
 
-// Gera uma cópia independente da imagem atual.
-// Isso evita alterar acidentalmente a matriz usada como referência.
 function cloneImage(image) {
   return createImageObject(
     image.width,
@@ -106,7 +86,7 @@ function clearCanvas(canvas, context) {
 }
 
 function describeMode(mode) {
-  return mode === "binary" ? "Imagem binária" : "Imagem em níveis de cinza";
+  return mode === "binary" ? "Imagem binaria" : "Imagem em niveis de cinza";
 }
 
 function detectMode(pixels) {
@@ -123,8 +103,6 @@ function setPixel(pixels, width, x, y, value) {
   pixels[y * width + x] = value;
 }
 
-// Define a imagem base mostrada à esquerda.
-// O primeiro carregamento também vira o "snapshot" usado para restauração.
 function setBaseImage(image, preserveOriginal = false) {
   baseImage = cloneImage(image);
 
@@ -140,16 +118,8 @@ function setResultImage(image, operationName) {
   resultImage = cloneImage(image);
   resultImage.lastOperation = operationName;
   drawViewerImage(resultImage, viewers.result, "Imagem transformada");
-  updateSummary();
 }
 
-function updateSummary() {
-  imageModeLabel.textContent = baseImage ? describeMode(baseImage.mode) : "Nenhum";
-  currentTransformLabel.textContent = resultImage?.lastOperation || "Nenhuma";
-}
-
-// Desenha a imagem no canvas e reinicializa a lupa de pixels no centro.
-// O canvas é apenas a superfície de exibição; a transformação é feita nos vetores.
 function drawViewerImage(image, viewer, emptyLabel, resetCenter = true) {
   if (!image) {
     clearCanvas(viewer.canvas, viewer.context);
@@ -180,14 +150,11 @@ function drawViewerImage(image, viewer, emptyLabel, resetCenter = true) {
   }, resetCenter);
 }
 
-// Monta a tabela 15x15 de vizinhança ao redor do pixel selecionado.
 function normalizeValue(value, maxValue) {
   if (maxValue <= 0) return 0;
   return Math.round((value / maxValue) * 255);
 }
 
-// Faz o parse manual de imagens portáteis P1/P2.
-// Não usa bibliotecas prontas.
 function parsePortableImage(arrayBuffer, label) {
   const bytes = new Uint8Array(arrayBuffer);
   const decoder = new TextDecoder("ascii");
@@ -221,7 +188,7 @@ function parsePortableImage(arrayBuffer, label) {
   const magic = readToken();
   const width = Number(readToken());
   const height = Number(readToken());
-  if (!magic || !width || !height) throw new Error("Cabeçalho inválido.");
+  if (!magic || !width || !height) throw new Error("Cabecalho invalido.");
 
   let maxValue = 1;
   if (magic === "P2" || magic === "P5") {
@@ -274,8 +241,6 @@ function parsePortableImage(arrayBuffer, label) {
   return createImageObject(width, height, pixels, detectMode(pixels), label, magic === "P1" ? "P1" : "P2");
 }
 
-// Converte imagens comuns carregadas pelo navegador para tons de cinza.
-// A leitura dos pixels é feita via canvas, mas a transformação continua manual.
 function convertBrowserImage(imageElement, label, options = {}) {
   const { forceBinary = false, threshold = 127 } = options;
   const tempCanvas = document.createElement("canvas");
@@ -307,8 +272,6 @@ function convertBrowserImage(imageElement, label, options = {}) {
   );
 }
 
-// Decide qual rotina usar no upload:
-// PGM/PBM passam pelo parser textual; outras imagens passam pela conversão em canvas.
 function readUploadedFile(file) {
   const extension = file.name.split(".").pop().toLowerCase();
 
@@ -317,9 +280,7 @@ function readUploadedFile(file) {
     reader.onload = () => {
       try {
         loadNewImage(parsePortableImage(reader.result, file.name));
-      } catch (error) {
-        statusText.textContent = `Não foi possível ler o arquivo: ${error.message}`;
-      }
+      } catch (_error) {}
     };
     reader.readAsArrayBuffer(file);
     return;
@@ -334,52 +295,19 @@ function readUploadedFile(file) {
   reader.readAsDataURL(file);
 }
 
-// Carrega uma das imagens disponibilizadas na pasta assets.
-async function loadSample(sampleKey) {
-  const sample = sampleAssets[sampleKey];
-  if (!sample) return;
-
-  try {
-    if (sample.kind === "portable") {
-      const response = await fetch(sample.path);
-      const buffer = await response.arrayBuffer();
-      loadNewImage(parsePortableImage(buffer, sample.label));
-      return;
-    }
-
-    const response = await fetch(sample.path);
-    const blob = await response.blob();
-    const url = URL.createObjectURL(blob);
-    const imageElement = new Image();
-    imageElement.onload = () => {
-      loadNewImage(convertBrowserImage(imageElement, sample.label, { forceBinary: sample.forceBinary }));
-      URL.revokeObjectURL(url);
-    };
-    imageElement.src = url;
-  } catch (error) {
-    statusText.textContent = `Falha ao carregar o exemplo local: ${error.message}`;
-  }
-}
-
-// Reseta o resultado transformado quando uma nova imagem é carregada.
 function loadNewImage(image) {
   setBaseImage(image);
   resultImage = null;
   drawViewerImage(null, viewers.result, "Aguardando processamento");
-  currentTransformLabel.textContent = "Nenhuma";
-  statusText.textContent = `Imagem carregada: ${image.label}. Tipo detectado: ${describeMode(image.mode)}.`;
 }
 
 function getWorkingImage() {
   if (!baseImage) {
-    statusText.textContent = "Carregue ou gere uma imagem antes de aplicar uma transformação.";
     return null;
   }
   return useResultAsBaseCheckbox.checked && resultImage ? resultImage : baseImage;
 }
 
-// Vizinho mais próximo.
-// Se o mapeamento cair fora da imagem, retorna fundo preto (0).
 function getNearestPixel(image, x, y, background = 0) {
   const px = Math.round(x);
   const py = Math.round(y);
@@ -390,8 +318,6 @@ function getNearestPixel(image, x, y, background = 0) {
   return image.pixels[py * image.width + px];
 }
 
-// Interpolação bilinear usada somente na rotação.
-// Ela combina os 4 vizinhos mais próximos para reduzir serrilhado no giro.
 function getBilinearPixel(image, x, y, background = 0) {
   if (x < 0 || x >= image.width - 1 || y < 0 || y >= image.height - 1) {
     return background;
@@ -414,8 +340,6 @@ function getBilinearPixel(image, x, y, background = 0) {
   return Math.round(r1 * (1 - dy) + r2 * dy);
 }
 
-// 1. Translação
-// Implementada por mapeamento inverso: cada pixel de destino busca sua origem em (x - dx, y - dy).
 function translation(image, dx, dy) {
   const result = new Uint8ClampedArray(image.width * image.height);
   result.fill(0);
@@ -431,11 +355,9 @@ function translation(image, dx, dy) {
   return createImageObject(image.width, image.height, result, image.mode, image.label, image.type);
 }
 
-// 2. Escala
-// Recalcula o tamanho de saída e usa mapeamento inverso dividindo pelas escalas sx e sy.
 function scale(image, sx, sy) {
   if (sx === 0 || sy === 0) {
-    throw new Error("Os fatores de escala não podem ser zero.");
+    throw new Error("Os fatores de escala nao podem ser zero.");
   }
 
   const newWidth = Math.max(1, Math.round(image.width * sx));
@@ -454,8 +376,6 @@ function scale(image, sx, sy) {
   return createImageObject(newWidth, newHeight, result, image.mode, image.label, image.type);
 }
 
-// 3. Reflexão
-// Espelha a imagem em torno de um único eixo.
 function reflection(image, axis = "x") {
   const result = new Uint8ClampedArray(image.width * image.height);
 
@@ -470,8 +390,6 @@ function reflection(image, axis = "x") {
   return createImageObject(image.width, image.height, result, image.mode, image.label, image.type);
 }
 
-// 4. Cisalhamento
-// O cálculo é feito em torno do centro e usa aritmética modular para produzir o efeito cilíndrico.
 function shear(image, cx, cy) {
   const result = new Uint8ClampedArray(image.width * image.height);
   const halfW = image.width / 2;
@@ -498,8 +416,6 @@ function shear(image, cx, cy) {
   return createImageObject(image.width, image.height, result, image.mode, image.label, image.type);
 }
 
-// 5. Rotação
-// Usa o zoomFactor para manter o conteúdo no quadro e bilinear para amostragem.
 function rotation(image, angle) {
   const radians = angle * (Math.PI / 180);
   const cosine = Math.cos(radians);
@@ -528,7 +444,6 @@ function rotation(image, angle) {
   return createImageObject(image.width, image.height, result, image.mode, image.label, image.type);
 }
 
-// Centraliza a leitura dos parâmetros da interface e aplica a transformação escolhida.
 function applyTransformation(type) {
   const sourceImage = getWorkingImage();
   if (!sourceImage) return;
@@ -540,7 +455,7 @@ function applyTransformation(type) {
     const tx = Number(document.getElementById("translateX").value);
     const ty = Number(document.getElementById("translateY").value);
     transformedImage = translation(sourceImage, tx, ty);
-    operationName = `Translação (tx=${tx}, ty=${ty})`;
+    operationName = `Translacao (tx=${tx}, ty=${ty})`;
   }
 
   if (type === "scale") {
@@ -553,7 +468,7 @@ function applyTransformation(type) {
   if (type === "reflect") {
     const axis = document.getElementById("reflectionAxis").value;
     transformedImage = reflection(sourceImage, axis);
-    operationName = `Reflexão (${axis === "x" ? "Horizontal / eixo X" : "Vertical / eixo Y"})`;
+    operationName = `Reflexao (${axis === "x" ? "Horizontal / eixo X" : "Vertical / eixo Y"})`;
   }
 
   if (type === "shear") {
@@ -566,47 +481,31 @@ function applyTransformation(type) {
   if (type === "rotate") {
     const angle = Number(document.getElementById("rotation").value);
     transformedImage = rotation(sourceImage, angle);
-    operationName = `Rotação (${angle}°)`;
+    operationName = `Rotacao (${angle} graus)`;
   }
 
   if (!transformedImage) return;
 
   transformedImage.label = `${sourceImage.label} - ${operationName}`;
   setResultImage(transformedImage, operationName);
-  statusText.textContent = `${operationName} aplicada com a  lógica matemática em transformações geométricas.`;
 }
 
-// Recupera a primeira imagem carregada, descartando a cadeia atual de testes.
 function resetToOriginal() {
-  if (!originalSnapshot) {
-    statusText.textContent = "Ainda não existe uma imagem original para restaurar.";
-    return;
-  }
+  if (!originalSnapshot) return;
 
   setBaseImage(originalSnapshot, true);
   resultImage = null;
   drawViewerImage(null, viewers.result, "Aguardando processamento");
-  currentTransformLabel.textContent = "Nenhuma";
-  statusText.textContent = "A imagem original foi restaurada.";
-  updateSummary();
 }
 
-// Promove a imagem transformada atual para virar a nova base de comparação.
 function promoteResultToBase() {
-  if (!resultImage) {
-    statusText.textContent = "Gere um resultado antes de promovê-lo para imagem original.";
-    return;
-  }
+  if (!resultImage) return;
 
   setBaseImage(resultImage);
   resultImage = null;
   drawViewerImage(null, viewers.result, "Aguardando processamento");
-  currentTransformLabel.textContent = "Nenhuma";
-  statusText.textContent = "O resultado atual passou a ser a nova imagem original.";
-  updateSummary();
 }
 
-// Limpa toda a interface para começar um novo teste do zero.
 function clearAll() {
   baseImage = null;
   resultImage = null;
@@ -616,13 +515,9 @@ function clearAll() {
   drawViewerImage(null, viewers.result, "Aguardando processamento");
   originalMeta.textContent = "Nenhuma imagem carregada";
   resultMeta.textContent = "Aguardando processamento";
-  imageModeLabel.textContent = "Nenhum";
-  currentTransformLabel.textContent = "Nenhuma";
-  statusText.textContent = "Tudo foi limpo. Carregue uma imagem ou use um dos exemplos locais do Item 6.";
   imageInput.value = "";
 }
 
-// Restaura os valores iniciais dos campos de transformação sem recarregar a página.
 function resetControlsToDefault() {
   document.getElementById("scaleX").value = defaultControlValues.scaleX;
   document.getElementById("scaleY").value = defaultControlValues.scaleY;
@@ -633,17 +528,13 @@ function resetControlsToDefault() {
   document.getElementById("rotation").value = defaultControlValues.rotation;
   document.getElementById("reflectionAxis").value = defaultControlValues.reflectionAxis;
   useResultAsBaseCheckbox.checked = defaultControlValues.useResultAsBase;
-  sampleSelect.value = defaultControlValues.sampleSelect;
-  statusText.textContent = "Os valores padrão dos controles foram restaurados.";
 }
 
 document.querySelectorAll("[data-transform]").forEach((button) => {
   button.addEventListener("click", () => {
     try {
       applyTransformation(button.dataset.transform);
-    } catch (error) {
-      statusText.textContent = `Falha ao aplicar a transformação: ${error.message}`;
-    }
+    } catch (_error) {}
   });
 });
 
@@ -651,11 +542,6 @@ imageInput.addEventListener("change", (event) => {
   const [file] = event.target.files;
   if (file) readUploadedFile(file);
 });
-
-loadSelectedSampleButton.addEventListener("click", () => loadSample(sampleSelect.value));
-loadGraySampleButton.addEventListener("click", () => loadSample("lena"));
-loadGrayAltSampleButton.addEventListener("click", () => loadSample("lenag"));
-loadAirplaneSampleButton.addEventListener("click", () => loadSample("airplane"));
 
 resetControlsButton.addEventListener("click", resetControlsToDefault);
 promoteResultButton.addEventListener("click", promoteResultToBase);

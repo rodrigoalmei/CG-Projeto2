@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Item 6 | Transformações Geométricas em Imagens</title>
+    <title>Item 6 | Transformacoes Geometricas em Imagens</title>
     <link rel="stylesheet" href="../shared/module-nav.css" />
     <link rel="stylesheet" href="../shared/pixel-inspector.css" />
     <link rel="stylesheet" href="style.css" />
@@ -11,37 +11,28 @@
 
   <body>
     <nav class="module-nav" aria-label="Navegacao principal do projeto">
-      <a class="module-nav__brand" href="../index.html">Computação Gráfica</a>
+      <a class="module-nav__brand" href="../index.html">Computacao Grafica</a>
       <div class="module-nav__links">
-        <a class="module-nav__link" href="../index.html">Início</a>
+        <a class="module-nav__link" href="../index.html">Inicio</a>
         <a class="module-nav__link" href="../Item 1/index.html">Item 1</a>
         <a class="module-nav__link" href="../Item 2/index.html">Item 2</a>
         <a class="module-nav__link" href="../Item 3/index.html">Item 3</a>
         <a class="module-nav__link" href="../Item 4/index.html">Item 4</a>
         <a class="module-nav__link" href="../Item 5/index.html">Item 5</a>
-        <a class="module-nav__link is-active" href="../Item 6/index.html"
-          >Item 6</a
-        >
+        <a class="module-nav__link is-active" href="../Item 6/index.html">Item 6</a>
       </div>
     </nav>
+
     <div class="page-shell">
       <header class="hero">
         <div class="hero-copy">
-          <span class="eyebrow"
-            >Projeto da disciplina de Computação Gráfica</span
-          >
-          <h1>Transformações Geométricas em Imagens</h1>
+          <span class="eyebrow">Projeto da disciplina de Computacao Grafica</span>
+          <h1>Transformacoes Geometricas em Imagens</h1>
           <p>
-            Aplicação acadêmica em HTML, CSS e JavaScript puro para demonstrar
-            escala, translação, reflexão, cisalhamento e rotação em imagens em
-            níveis de cinza, com processamento manual de pixels.
+            Aplicacao academica em HTML, CSS e JavaScript puro para demonstrar
+            escala, translacao, reflexao, cisalhamento e rotacao em imagens em
+            niveis de cinza, com processamento manual de pixels.
           </p>
-        </div>
-        <div class="hero-note">
-          <strong>Alunos</strong>
-          <span
-            >Arthur Marques, Rodrigo Almeida, Vitor Jesus e Vitor Raimundo</span
-          >
         </div>
       </header>
 
@@ -50,59 +41,20 @@
           <section class="panel-card">
             <div class="section-title">
               <h2>Entrada da Imagem</h2>
-              <p>
-                Carregue uma imagem ou use somente as imagens disponibilizadas
-                pelo professor.
-              </p>
+              <p>Carregue a imagem que sera usada nas transformacoes.</p>
             </div>
 
             <label class="file-picker">
               <span>Selecionar imagem</span>
               <input type="file" id="imageInput" accept=".pgm" />
             </label>
-
-            <div class="field-grid" style="margin-top: 16px; margin-bottom: 0">
-              <label>
-                <span>Imagens locais disponibilizadas</span>
-                <select id="sampleSelect">
-                  <option value="lena">lena.pgm</option>
-                  <option value="lenag">Lenag.pgm</option>
-                  <option value="lenasalp">Lenasalp.pgm</option>
-                  <option value="airplane">Airplane.pgm</option>
-                </select>
-              </label>
-            </div>
-
-            <div class="quick-actions">
-              <button class="secondary-button" id="loadSelectedSample">
-                Carregar exemplo local
-              </button>
-              <button class="secondary-button" id="loadGraySample">
-                lena.pgm
-              </button>
-              <button class="secondary-button" id="loadGrayAltSample">
-                Lenag.pgm
-              </button>
-              <button class="secondary-button" id="loadAirplaneSample">
-                Airplane.pgm
-              </button>
-            </div>
-
-            <div class="info-box">
-              <strong>Formatos aceitos</strong>
-              <p>
-                As imagens disponibilizadas pelo professor estão na pasta local
-                de assets em formato PGM, e o envio manual também está focado
-                nesse mesmo formato.
-              </p>
-            </div>
           </section>
 
           <section class="panel-card">
             <div class="section-title">
-              <h2>Transformações</h2>
+              <h2>Transformacoes</h2>
               <p>
-                Cada operação possui parâmetros próprios e botão independente.
+                Cada operacao possui parametros proprios e botao independente.
               </p>
             </div>
 
@@ -128,7 +80,7 @@
 
             <div class="transform-card">
               <div class="transform-header">
-                <h3>Translação</h3>
+                <h3>Translacao</h3>
                 <span>Deslocamento espacial da imagem</span>
               </div>
               <div class="field-grid two-columns">
@@ -142,13 +94,13 @@
                 </label>
               </div>
               <button class="primary-button" data-transform="translate">
-                Aplicar Translação
+                Aplicar Translacao
               </button>
             </div>
 
             <div class="transform-card">
               <div class="transform-header">
-                <h3>Reflexão / Flip</h3>
+                <h3>Reflexao / Flip</h3>
                 <span>Espelhamento em torno dos eixos da imagem</span>
               </div>
               <div class="field-grid">
@@ -161,14 +113,14 @@
                 </label>
               </div>
               <button class="primary-button" data-transform="reflect">
-                Aplicar Reflexão
+                Aplicar Reflexao
               </button>
             </div>
 
             <div class="transform-card">
               <div class="transform-header">
                 <h3>Cisalhamento</h3>
-                <span>Distorção geométrica por inclinação</span>
+                <span>Distorcao geometrica por inclinacao</span>
               </div>
               <div class="field-grid two-columns">
                 <label>
@@ -187,17 +139,17 @@
 
             <div class="transform-card">
               <div class="transform-header">
-                <h3>Rotação</h3>
+                <h3>Rotacao</h3>
                 <span>Giro em torno do centro da imagem</span>
               </div>
               <div class="field-grid">
                 <label>
-                  <span>Ângulo em graus</span>
+                  <span>Angulo em graus</span>
                   <input type="number" id="rotation" value="45" step="1" />
                 </label>
               </div>
               <button class="primary-button" data-transform="rotate">
-                Aplicar Rotação
+                Aplicar Rotacao
               </button>
             </div>
           </section>
@@ -205,17 +157,17 @@
           <section class="panel-card">
             <div class="section-title">
               <h2>Controles Gerais</h2>
-              <p>Organização para apresentação e comparação dos resultados.</p>
+              <p>Organizacao para apresentacao e comparacao dos resultados.</p>
             </div>
             <div class="toggle-line">
               <label class="checkbox">
                 <input type="checkbox" id="useResultAsBase" />
-                <span>Aplicar a transformação sobre o resultado atual</span>
+                <span>Aplicar a transformacao sobre o resultado atual</span>
               </label>
             </div>
             <div class="quick-actions stacked">
               <button class="ghost-button" id="resetControls">
-                Restaurar valores padrão
+                Restaurar valores padrao
               </button>
               <button class="secondary-button" id="promoteResult">
                 Usar resultado como nova imagem original
@@ -235,11 +187,9 @@
             <div class="canvas-header">
               <div>
                 <h2>Imagem Original</h2>
-                <p>Visualização da imagem de entrada com inspeção de pixels.</p>
+                <p>Visualizacao da imagem de entrada com inspecao de pixels.</p>
               </div>
-              <span class="badge" id="originalMeta"
-                >Nenhuma imagem carregada</span
-              >
+              <span class="badge" id="originalMeta">Nenhuma imagem carregada</span>
             </div>
             <div class="canvas-stage">
               <div class="canvas-frame">
@@ -262,9 +212,7 @@
                 <h2>Imagem Transformada</h2>
                 <p>Resultado calculado.</p>
               </div>
-              <span class="badge" id="resultMeta"
-                >Aguardando processamento</span
-              >
+              <span class="badge" id="resultMeta">Aguardando processamento</span>
             </div>
             <div class="canvas-stage">
               <div class="canvas-frame">
@@ -281,44 +229,6 @@
             </div>
           </section>
 
-          <section class="report-card">
-            <div class="section-title">
-              <h2>Resumo Técnico</h2>
-              <p>Área útil para apresentação do funcionamento do algoritmo.</p>
-            </div>
-            <div class="report-grid">
-              <div class="report-item">
-                <strong>Modo detectado</strong>
-                <span id="imageMode">Nenhum</span>
-              </div>
-              <div class="report-item">
-                <strong>Transformação atual</strong>
-                <span id="currentTransform">Nenhuma</span>
-              </div>
-              <div class="report-item wide">
-                <strong>Critério de amostragem</strong>
-                <span>
-                  Escala, translação, reflexão e cisalhamento seguem a lógica
-                  com vizinho mais próximo. A rotação usa interpolação bilinear
-                  para reduzir serrilhado.
-                </span>
-              </div>
-              <div class="report-item wide">
-                <strong>Justificativa do cisalhamento</strong>
-                <span>
-                  O cisalhamento foi implementado de forma cilíndrica.
-                </span>
-              </div>
-              <div class="report-item wide">
-                <strong>Observação</strong>
-                <span id="statusText">
-                  O canvas é usado apenas como superfície de desenho. Os novos
-                  pixels são calculados manualmente em JavaScript, sem
-                  bibliotecas prontas de processamento.
-                </span>
-              </div>
-            </div>
-          </section>
         </section>
       </main>
     </div>

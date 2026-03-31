@@ -98,6 +98,27 @@ h1 {
     box-shadow: 0 1px 4px #0001;
 }
 
+.toolbar-download:disabled,
+.toolbar button:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+    box-shadow: none;
+}
+
+.status-text {
+    width: min(100%, 620px);
+    margin: 4px 0 0 0;
+    color: var(--muted);
+    text-align: center;
+    font-size: 0.98rem;
+    line-height: 1.45;
+}
+
+.status-text[data-state="error"] {
+    color: #b3261e;
+    font-weight: 600;
+}
+
 .toolbar select:focus {
     border-color: var(--accent);
 }
