@@ -27,12 +27,8 @@ let processedCenter = { x: 0, y: 0 };
 
 // Mapeamento das imagens de exemplo disponiveis no seletor.
 const imagesPath = {
-    0: "assets/lena.pgm",
-    2: "assets/airplane.pgm",
-    3: "assets/pedrokid.pgm",
-    4: "assets/kidnathan.pgm",
-    5: "assets/pedroadult.pgm",
-    6: "assets/nathanadult.pgm"
+    lena: "/assets/lena.pgm",
+    airplane: "/assets/airplane.pgm"
 };
 
 // Limita um valor para permanecer dentro do intervalo [min, max].
@@ -507,7 +503,8 @@ async function loadFromFile(file) {
 
 // Carrega uma imagem de exemplo do seletor.
 async function loadLena() {
-    const path = imagesPath[imgSelector.value] || "assets/lena.pgm";
+    const key = imgSelector.value;
+    const path = imagesPath[key] || "/assets/lena.pgm";
     statusText.textContent = `Carregando ${path}...`;
     const response = await fetch(path);
     const text = await response.text();
